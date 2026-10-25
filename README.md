@@ -2,10 +2,6 @@
 
 Yazılım Geliştirme Laboratuvarı-I, Proje 1
 
-**Ekip:** <ad soyad 1>, <ad soyad 2>
-**Tarih:** <teslim tarihi>
-**Unity sürümü:** <sürüm>
-
 ## Oyun
 
 Gece müzede elektrik kesik. Oyuncu kilitli kasayı açmak istiyor.
