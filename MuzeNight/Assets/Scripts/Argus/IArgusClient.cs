@@ -6,5 +6,11 @@ namespace MuzeGecesi.Argus
     public interface IArgusClient
     {
         Task<ArgusResponse> AskAsync(string playerText);
+
+        // Modeli önceden belleğe yükler
+        Task WarmUpAsync();
+
+        // Yeni oyunda konuşma geçmişini siler
+        void ResetConversation();
     }
 }
