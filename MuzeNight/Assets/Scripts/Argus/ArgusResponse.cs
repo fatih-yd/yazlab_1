@@ -8,9 +8,9 @@ namespace MuzeGecesi.Argus
         public string reply;
         public bool unlock_vault;
 
-        // Bu ikisi JSON'dan gelmez. Hata olursa dolar, oyun loga yazmak için kullanır.
-        [NonSerialized] public bool isError;
-        [NonSerialized] public string errorReason;
+        // Hata olursa bunlar dolar, konsola yazmak için kullanıyoruz
+        public bool isError;
+        public string errorReason;
 
         // Hata olursa bu cevap kullanılır
         public static ArgusResponse Fallback(string reason)
