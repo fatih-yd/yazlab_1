@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -7,23 +8,53 @@ using UnityEngine;
 
 namespace MuzeGecesi.Argus
 {
-    // ARGUS'u yerel Ollama sunucusuna bağlar
+    // ARGUS'u yerel Ollama sunucusuna bağlar. Hata olursa exception fırlatmaz, Fallback cevabı döner.
     public class OllamaArgusClient : IArgusClient
     {
-        private static readonly HttpClient http = new HttpClient();
+        // Zaman aşımını kendimiz yönettiğimiz için HttpClient'ınki kapalı
+        private static readonly HttpClient http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
 
         private string chatUrl;
         private string model;
+        private float timeoutSeconds;
 
-        public OllamaArgusClient(string baseUrl = "http://localhost:11434", string model = "qwen2.5:3b")
+        public OllamaArgusClient(string baseUrl = "http://localhost:11434", string model = "qwen2.5:3b", float timeoutSeconds = 10f)
         {
             chatUrl = baseUrl.TrimEnd('/') + "/api/chat";
             this.model = model;
+            this.timeoutSeconds = timeoutSeconds;
         }
 
         public async Task<ArgusResponse> AskAsync(string playerText, CancellationToken token = default)
         {
-            // Ollama'ya gidecek isteği hazırla
+            if (string.IsNullOrWhiteSpace(playerText))
+                return ArgusResponse.Fallback("Oyuncu bos mesaj gonderdi.");
+
+            try
+            {
+                string body = BuildBody(playerText);
+                string responseText = await Post(body, token);
+                return ReadResponse(responseText);
+            }
+            catch (OperationCanceledException)
+            {
+                // Zaman aşımı da iptal olarak gelir, hangisi olduğuna token'dan bakıyoruz
+                if (token.IsCancellationRequested)
+                    return ArgusResponse.Fallback("Istek iptal edildi.");
+                return ArgusResponse.Fallback("Zaman asimi: Ollama " + timeoutSeconds + " sn icinde cevap vermedi.");
+            }
+            catch (HttpRequestException e)
+            {
+                return ArgusResponse.Fallback("Ollama'ya ulasilamadi: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                return ArgusResponse.Fallback("Beklenmeyen hata: " + e.Message);
+            }
+        }
+
+        private string BuildBody(string playerText)
+        {
             OllamaChatRequest request = new OllamaChatRequest();
             request.model = model;
             request.messages = new List<OllamaMessage>();
@@ -32,17 +63,45 @@ namespace MuzeGecesi.Argus
             request.stream = false;
             request.format = "json";
             request.options = new OllamaOptions { temperature = 0.2f };
+            return JsonUtility.ToJson(request);
+        }
 
-            string body = JsonUtility.ToJson(request);
-            StringContent content = new StringContent(body, Encoding.UTF8, "application/json");
+        private async Task<string> Post(string body, CancellationToken token)
+        {
+            using (CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(token))
+            using (StringContent content = new StringContent(body, Encoding.UTF8, "application/json"))
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-            // İsteği gönder, cevabı bekle (oyun donmaz, await bekleme sırasında kareleri durdurmaz)
-            HttpResponseMessage httpResponse = await http.PostAsync(chatUrl, content, token);
-            string responseText = await httpResponse.Content.ReadAsStringAsync();
+                using (HttpResponseMessage response = await http.PostAsync(chatUrl, content, cts.Token))
+                {
+                    // Model yüklü değilse Ollama 404 döner
+                    if (!response.IsSuccessStatusCode)
+                        throw new HttpRequestException("Ollama hata kodu dondu: " + (int)response.StatusCode);
 
-            // Ollama'nın cevabından modelin yazdığı metni al, ARGUS cevabına çevir
-            OllamaChatResponse chat = JsonUtility.FromJson<OllamaChatResponse>(responseText);
-            ArgusResponseParser.TryParse(chat.message.content, out ArgusResponse response);
+                    return await response.Content.ReadAsStringAsync();
+                }
+            }
+        }
+
+        private ArgusResponse ReadResponse(string responseText)
+        {
+            OllamaChatResponse chat;
+            try
+            {
+                chat = JsonUtility.FromJson<OllamaChatResponse>(responseText);
+            }
+            catch (ArgumentException)
+            {
+                return ArgusResponse.Fallback("Ollama cevabi okunamadi.");
+            }
+
+            string modelOutput = chat != null && chat.message != null ? chat.message.content : null;
+
+            ArgusResponse response;
+            if (!ArgusResponseParser.TryParse(modelOutput, out response))
+                return ArgusResponse.Fallback("Modelin cevabi gecerli JSON degil: " + modelOutput);
+
             return response;
         }
     }
