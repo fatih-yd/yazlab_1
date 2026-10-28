@@ -8,101 +8,78 @@ using UnityEngine;
 
 namespace MuzeGecesi.Argus
 {
-    // ARGUS'u yerel Ollama sunucusuna bağlar. Hata olursa exception fırlatmaz, Fallback cevabı döner.
+    // ARGUS'u yerel Ollama sunucusuna bağlar. Hata olursa Fallback cevabı döner, oyun çökmez.
     public class OllamaArgusClient : IArgusClient
     {
-        // Zaman aşımını kendimiz yönettiğimiz için HttpClient'ınki kapalı
-        private static readonly HttpClient http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+        private static HttpClient http = new HttpClient();
 
         private string chatUrl;
         private string model;
         private float timeoutSeconds;
 
-        public OllamaArgusClient(string baseUrl = "http://localhost:11434", string model = "qwen2.5:3b", float timeoutSeconds = 10f)
+        public OllamaArgusClient(string baseUrl, string model, float timeoutSeconds)
         {
-            chatUrl = baseUrl.TrimEnd('/') + "/api/chat";
+            this.chatUrl = baseUrl + "/api/chat";
             this.model = model;
             this.timeoutSeconds = timeoutSeconds;
         }
 
-        public async Task<ArgusResponse> AskAsync(string playerText, CancellationToken token = default)
+        public async Task<ArgusResponse> AskAsync(string playerText)
         {
             if (string.IsNullOrWhiteSpace(playerText))
-                return ArgusResponse.Fallback("Oyuncu bos mesaj gonderdi.");
+            {
+                return ArgusResponse.Fallback("Boş mesaj gönderildi.");
+            }
 
             try
             {
-                string body = BuildBody(playerText);
-                string responseText = await Post(body, token);
-                return ReadResponse(responseText);
+                // Ollama'ya gidecek isteği hazırla
+                OllamaChatRequest request = new OllamaChatRequest();
+                request.model = model;
+                request.messages = new List<OllamaMessage>();
+                request.messages.Add(new OllamaMessage { role = "system", content = ArgusPrompt.SystemPrompt });
+                request.messages.Add(new OllamaMessage { role = "user", content = playerText });
+                request.stream = false;
+                request.format = "json";
+                request.options = new OllamaOptions { temperature = 0.2f };
+
+                string body = JsonUtility.ToJson(request);
+                StringContent content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                // Süre dolunca istek iptal olur
+                CancellationTokenSource timer = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+
+                // await bekleme sırasında oyunu dondurmaz
+                HttpResponseMessage httpResponse = await http.PostAsync(chatUrl, content, timer.Token);
+
+                // Model yüklü değilse Ollama 404 döner
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    return ArgusResponse.Fallback("Ollama hata kodu döndü: " + (int)httpResponse.StatusCode);
+                }
+
+                string responseText = await httpResponse.Content.ReadAsStringAsync();
+                OllamaChatResponse chat = JsonUtility.FromJson<OllamaChatResponse>(responseText);
+
+                ArgusResponse response;
+                if (ArgusResponseParser.TryParse(chat.message.content, out response))
+                {
+                    return response;
+                }
+                return ArgusResponse.Fallback("Modelin cevabı geçerli JSON değil: " + chat.message.content);
             }
             catch (OperationCanceledException)
             {
-                // Zaman aşımı da iptal olarak gelir, hangisi olduğuna token'dan bakıyoruz
-                if (token.IsCancellationRequested)
-                    return ArgusResponse.Fallback("Istek iptal edildi.");
-                return ArgusResponse.Fallback("Zaman asimi: Ollama " + timeoutSeconds + " sn icinde cevap vermedi.");
+                return ArgusResponse.Fallback("Zaman aşımı: Ollama " + timeoutSeconds + " sn içinde cevap vermedi.");
             }
             catch (HttpRequestException e)
             {
-                return ArgusResponse.Fallback("Ollama'ya ulasilamadi: " + e.Message);
+                return ArgusResponse.Fallback("Ollama'ya ulaşılamadı: " + e.Message);
             }
             catch (Exception e)
             {
                 return ArgusResponse.Fallback("Beklenmeyen hata: " + e.Message);
             }
-        }
-
-        private string BuildBody(string playerText)
-        {
-            OllamaChatRequest request = new OllamaChatRequest();
-            request.model = model;
-            request.messages = new List<OllamaMessage>();
-            request.messages.Add(new OllamaMessage { role = "system", content = ArgusPrompt.SystemPrompt });
-            request.messages.Add(new OllamaMessage { role = "user", content = playerText });
-            request.stream = false;
-            request.format = "json";
-            request.options = new OllamaOptions { temperature = 0.2f };
-            return JsonUtility.ToJson(request);
-        }
-
-        private async Task<string> Post(string body, CancellationToken token)
-        {
-            using (CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(token))
-            using (StringContent content = new StringContent(body, Encoding.UTF8, "application/json"))
-            {
-                cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
-
-                using (HttpResponseMessage response = await http.PostAsync(chatUrl, content, cts.Token))
-                {
-                    // Model yüklü değilse Ollama 404 döner
-                    if (!response.IsSuccessStatusCode)
-                        throw new HttpRequestException("Ollama hata kodu dondu: " + (int)response.StatusCode);
-
-                    return await response.Content.ReadAsStringAsync();
-                }
-            }
-        }
-
-        private ArgusResponse ReadResponse(string responseText)
-        {
-            OllamaChatResponse chat;
-            try
-            {
-                chat = JsonUtility.FromJson<OllamaChatResponse>(responseText);
-            }
-            catch (ArgumentException)
-            {
-                return ArgusResponse.Fallback("Ollama cevabi okunamadi.");
-            }
-
-            string modelOutput = chat != null && chat.message != null ? chat.message.content : null;
-
-            ArgusResponse response;
-            if (!ArgusResponseParser.TryParse(modelOutput, out response))
-                return ArgusResponse.Fallback("Modelin cevabi gecerli JSON degil: " + modelOutput);
-
-            return response;
         }
     }
 }
