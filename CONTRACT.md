@@ -23,7 +23,7 @@ Oyun tarafı (sahne, robot, kasa) ile ARGUS tarafı (Ollama, system prompt, JSON
 
 - Zaman aşımı: 10 saniye. Model ilk seferde belleğe yüklenirken 40 saniyeye kadar sürebiliyor, o yüzden ilk istek için 60 saniye bekleniyor. Oyun açılırken modeli önceden yüklemek için `WarmUpAsync` çağrılıyor.
 - Model: `qwen2.5:3b`. Hem 3B hem 7B ile denedik, 3B daha tutarlı çıktı ve daha az bellek kullanıyor.
-- ARGUS önceki konuşmayı hatırlasın diye son 8 mesaj (oyuncu ve ARGUS) isteğe eklenir.
+- ARGUS önceki konuşmayı hatırlasın diye oyuncunun son 4 mesajı, şimdiki mesajla birlikte tek `user` mesajı olarak gönderilir. ARGUS'un eski cevapları gönderilmez, çünkü model eski retleri tekrarlıyordu.
 
 ## 2. ARGUS → Oyun (cevap)
 

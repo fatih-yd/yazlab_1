@@ -21,8 +21,9 @@ namespace MuzeGecesi.Argus
         private float coldStartSeconds = 60f;
         private bool isWarm = false;
 
-        // ARGUS önceki konuşmayı hatırlasın diye son 8 mesajı tutuyoruz
-        private List<OllamaMessage> history = new List<OllamaMessage>();
+        // Oyuncunun önceki mesajlarını tutuyoruz (son 4). ARGUS'un eski cevaplarını tutmuyoruz,
+        // çünkü model eski retleri tekrar edip yeni mesajı da reddediyordu.
+        private List<string> history = new List<string>();
 
         public OllamaArgusClient(string baseUrl, string model, float timeoutSeconds)
         {
@@ -80,8 +81,14 @@ namespace MuzeGecesi.Argus
                 request.model = model;
                 request.messages = new List<OllamaMessage>();
                 request.messages.Add(new OllamaMessage { role = "system", content = ArgusPrompt.SystemPrompt });
-                request.messages.AddRange(history);
-                request.messages.Add(new OllamaMessage { role = "user", content = playerText });
+
+                // Önceki mesajlar varsa onları da aynı mesajın içine yazıyoruz
+                string userText = playerText;
+                if (history.Count > 0)
+                {
+                    userText = "Oyuncunun önceki mesajları: " + string.Join(" | ", history) + "\nOyuncunun şimdiki mesajı: " + playerText;
+                }
+                request.messages.Add(new OllamaMessage { role = "user", content = userText });
                 request.stream = false;
                 request.format = "json";
                 request.keep_alive = "30m"; // model 30 dakika bellekte kalsın
@@ -109,12 +116,10 @@ namespace MuzeGecesi.Argus
                 ArgusResponse response;
                 if (ArgusResponseParser.TryParse(chat.message.content, out response))
                 {
-                    // Çift çift siliyoruz ki mesaj sırası (oyuncu, model) bozulmasın
-                    history.Add(new OllamaMessage { role = "user", content = playerText });
-                    history.Add(new OllamaMessage { role = "assistant", content = chat.message.content });
-                    while (history.Count > 8)
+                    history.Add(playerText);
+                    if (history.Count > 4)
                     {
-                        history.RemoveRange(0, 2);
+                        history.RemoveAt(0);
                     }
                     return response;
                 }
