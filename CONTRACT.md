@@ -37,6 +37,7 @@ Ollama'nın `message.content` alanındaki JSON şu yapıda olmalı:
 - `neden_kasayla_ilgili`: Oyuncunun nedeni kasadaki eserlerle ilgili acil bir durum mu.
 - `reply`: NPC'nin söyleyeceği metin. Ekranda gösterilir.
 - `unlock_vault`: `true` veya `false`. Model bunu yalnızca iki soru da `true` ise `true` yapmalı. Model uymazsa oyun tarafı da kontrol eder, iki sorudan biri `false` ise kasa açılmaz.
+- Model bazen `unlock_vault` alanını yazmayı unutuyor. İki soru cevaplanmışsa ve `reply` varsa bu hata sayılmaz, eksik `unlock_vault` `false` kabul edilir.
 - Oyun yalnızca `reply` ve `unlock_vault` alanlarını kullanır. İlk iki alan modelin daha doğru karar vermesi içindir.
 
 ## 3. Hata durumu

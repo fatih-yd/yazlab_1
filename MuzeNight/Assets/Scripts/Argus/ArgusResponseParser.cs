@@ -13,8 +13,12 @@ namespace MuzeGecesi.Argus
             string json = ExtractJson(raw);
             if (json == null) return false;
 
-            // JsonUtility eksik alanı sessizce varsayılana çevirir, o yüzden alanlar var mı diye bakıyoruz
-            if (!json.Contains("\"reply\"") || !json.Contains("\"unlock_vault\"")) return false;
+            // JsonUtility eksik alanı sessizce varsayılana çevirir, o yüzden alanlar var mı diye bakıyoruz.
+            // Model bazen unlock_vault'u yazmayı unutuyor. İki soru cevaplanmışsa bunu hata saymıyoruz,
+            // eksik unlock_vault false (kasa kapalı) kabul edilir.
+            bool soruVar = json.Contains("\"yetki_belirtti\"") && json.Contains("\"neden_kasayla_ilgili\"");
+            if (!json.Contains("\"reply\"")) return false;
+            if (!json.Contains("\"unlock_vault\"") && !soruVar) return false;
 
             ArgusResponse parsed;
             try
@@ -30,7 +34,6 @@ namespace MuzeGecesi.Argus
 
             // Model "iki soru da evet ise aç" kuralına her zaman uymuyor. Kendi cevapladığı
             // iki sorudan biri hayırsa kasayı açmıyoruz.
-            bool soruVar = json.Contains("\"yetki_belirtti\"") && json.Contains("\"neden_kasayla_ilgili\"");
             if (soruVar && (!parsed.yetki_belirtti || !parsed.neden_kasayla_ilgili))
             {
                 parsed.unlock_vault = false;
