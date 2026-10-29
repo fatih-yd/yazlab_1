@@ -420,7 +420,7 @@ GameObject:
   m_Component:
   - component: {fileID: 417767431}
   - component: {fileID: 417767430}
-  - component: {fileID: 417767429}
+  - component: {fileID: 417767432}
   m_Layer: 0
   m_Name: TerminalManager
   m_TagString: Untagged
@@ -428,19 +428,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &417767429
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 417767428}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b17dbd48c6905b74da6e982c1368945d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SahteArgusKaynagi
-  testKasayiAcsin: 0
 --- !u!114 &417767430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -471,6 +458,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &417767432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 417767428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3c89439b62cb1547a1390e1002bf03b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OllamaArgusKaynagi
+  ollamaUrl: http://localhost:11434
+  modelAdi: qwen2.5:3b
+  zamanAsimiSaniye: 10
 --- !u!1 &526525710
 GameObject:
   m_ObjectHideFlags: 0
