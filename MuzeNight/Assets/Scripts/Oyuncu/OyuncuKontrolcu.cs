@@ -8,6 +8,9 @@ public class OyuncuKontrolcu : MonoBehaviour
     // Terminal yazi yazarken true olur. Boylece harfler hareket ya da komut olarak algilanmaz.
     public static bool HareketKilitli;
 
+    // Oyun bittiginde true olur. Hareket ve komutlar tamamen durur.
+    public static bool OyunBitti;
+
     [SerializeField] private float hiz = 4f;
     [SerializeField] private TozcuKontrolcu tozcu;
 
@@ -28,7 +31,7 @@ public class OyuncuKontrolcu : MonoBehaviour
         }
 
         Vector3 yon = Vector3.zero;
-        if (!HareketKilitli)
+        if (!HareketKilitli && !OyunBitti)
         {
             float yatay = 0f;
             float dikey = 0f;
