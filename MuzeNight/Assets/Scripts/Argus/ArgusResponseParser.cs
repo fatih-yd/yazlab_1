@@ -28,6 +28,14 @@ namespace MuzeGecesi.Argus
 
             if (parsed == null || string.IsNullOrWhiteSpace(parsed.reply)) return false;
 
+            // Model "iki soru da evet ise aç" kuralına her zaman uymuyor. Kendi cevapladığı
+            // iki sorudan biri hayırsa kasayı açmıyoruz.
+            bool soruVar = json.Contains("\"yetki_belirtti\"") && json.Contains("\"neden_kasayla_ilgili\"");
+            if (soruVar && (!parsed.yetki_belirtti || !parsed.neden_kasayla_ilgili))
+            {
+                parsed.unlock_vault = false;
+            }
+
             response = parsed;
             return true;
         }

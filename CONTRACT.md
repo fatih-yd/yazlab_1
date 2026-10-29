@@ -30,11 +30,14 @@ Oyun tarafı (sahne, robot, kasa) ile ARGUS tarafı (Ollama, system prompt, JSON
 Ollama'nın `message.content` alanındaki JSON şu yapıda olmalı:
 
 ```json
-{ "reply": "string", "unlock_vault": true }
+{ "yetki_belirtti": true, "neden_kasayla_ilgili": true, "reply": "string", "unlock_vault": true }
 ```
 
+- `yetki_belirtti`: Oyuncu kasaya erişim hakkı olan bir görevli olduğunu söyledi mi.
+- `neden_kasayla_ilgili`: Oyuncunun nedeni kasadaki eserlerle ilgili acil bir durum mu.
 - `reply`: NPC'nin söyleyeceği metin. Ekranda gösterilir.
-- `unlock_vault`: `true` veya `false`.
+- `unlock_vault`: `true` veya `false`. Model bunu yalnızca iki soru da `true` ise `true` yapmalı. Model uymazsa oyun tarafı da kontrol eder, iki sorudan biri `false` ise kasa açılmaz.
+- Oyun yalnızca `reply` ve `unlock_vault` alanlarını kullanır. İlk iki alan modelin daha doğru karar vermesi içindir.
 
 ## 3. Hata durumu
 

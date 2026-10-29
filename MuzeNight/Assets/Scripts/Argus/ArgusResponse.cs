@@ -5,6 +5,10 @@ namespace MuzeGecesi.Argus
     [Serializable]
     public class ArgusResponse
     {
+        // Modelin önce cevapladığı iki soru
+        public bool yetki_belirtti;
+        public bool neden_kasayla_ilgili;
+
         public string reply;
         public bool unlock_vault;
 
