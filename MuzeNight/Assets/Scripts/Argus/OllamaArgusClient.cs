@@ -21,9 +21,9 @@ namespace MuzeGecesi.Argus
         private float coldStartSeconds = 60f;
         private bool isWarm = false;
 
-        // Oyuncunun önceki mesajlarını tutuyoruz (son 4). ARGUS'un eski cevaplarını tutmuyoruz,
-        // çünkü model eski retleri tekrar edip yeni mesajı da reddediyordu.
-        private List<string> history = new List<string>();
+        // Önceki mesajların hepsini göndermek modeli karıştırıyordu (eski mesajlara cevap veriyor,
+        // eski retleri tekrar ediyordu). O yüzden sadece "oyuncu daha önce yetkisini belirtti mi" bilgisini tutuyoruz.
+        private bool authorityClaimed = false;
 
         public OllamaArgusClient(string baseUrl, string model, float timeoutSeconds)
         {
@@ -35,7 +35,7 @@ namespace MuzeGecesi.Argus
         // Yeni oyunda konuşma geçmişini siler
         public void ResetConversation()
         {
-            history.Clear();
+            authorityClaimed = false;
         }
 
         // Modeli önceden belleğe yükler, ilk soru uzun beklemesin diye.
@@ -82,11 +82,11 @@ namespace MuzeGecesi.Argus
                 request.messages = new List<OllamaMessage>();
                 request.messages.Add(new OllamaMessage { role = "system", content = ArgusPrompt.SystemPrompt });
 
-                // Önceki mesajlar varsa onları da aynı mesajın içine yazıyoruz
+                // Oyuncu daha önce yetkisini belirttiyse modele bunu söylüyoruz
                 string userText = playerText;
-                if (history.Count > 0)
+                if (authorityClaimed)
                 {
-                    userText = "Oyuncunun önceki mesajları: " + string.Join(" | ", history) + "\nOyuncunun şimdiki mesajı: " + playerText;
+                    userText = "[Bilgi: oyuncu daha önce kasaya erişim hakkı olan bir görevli olduğunu söyledi]\n" + playerText;
                 }
                 request.messages.Add(new OllamaMessage { role = "user", content = userText });
                 request.stream = false;
@@ -116,10 +116,9 @@ namespace MuzeGecesi.Argus
                 ArgusResponse response;
                 if (ArgusResponseParser.TryParse(chat.message.content, out response))
                 {
-                    history.Add(playerText);
-                    if (history.Count > 4)
+                    if (response.yetki_belirtti)
                     {
-                        history.RemoveAt(0);
+                        authorityClaimed = true;
                     }
                     return response;
                 }
