@@ -1,23 +1,48 @@
 using System;
+using System.Collections;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Oyuncunun ARGUS ile yazistigi terminal.
-// Enter'a basinca mesaji gonderir, cevabi gosterir ve kasa kararini uygular.
+// ARGUS belirince modelden bir karsilama ister; sonra Enter ile gonderilen mesajlarin cevabini
+// daktilo efektiyle yazar ve kasa kararini uygular.
 public class TerminalKontrolcu : MonoBehaviour
 {
+    // Karsilama cumlesi sabit degil: modele durum anlatilir, selami ve soruyu model kendisi uretir
+    private const string KarsilamaIstegi =
+        "[Oyun bilgisi: Gece yarisi, muze kapali. Biri az once kasanin onundeki terminale yaklasti. " +
+        "Onu kisaca karsila; kim oldugunu ve muzenin bu saatinde burada ne aradigini sor.]";
+
     [SerializeField] private TMP_InputField girdi;
     [SerializeField] private TextMeshProUGUI cikti;
     [SerializeField] private Kasa kasa;
+    [SerializeField] private float yazmaHizi = 45f;
 
     private ICevapKaynagi kaynak;
+    private ArgusGorunurluk gorunurluk;
+    private Coroutine daktilo;
     private bool mesgulMu;
 
     private void Awake()
     {
         kaynak = GetComponent<ICevapKaynagi>();
         girdi.onSubmit.AddListener(EnterBasildi);
+
+        gorunurluk = GetComponent<ArgusGorunurluk>();
+        if (gorunurluk != null)
+        {
+            gorunurluk.Belirdi += KarsilamaYap;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (gorunurluk != null)
+        {
+            gorunurluk.Belirdi -= KarsilamaYap;
+        }
     }
 
     private void Update()
@@ -25,42 +50,68 @@ public class TerminalKontrolcu : MonoBehaviour
         // Yazi yazilirken oyuncu hareket etmesin
         OyuncuKontrolcu.HareketKilitli = girdi.isFocused;
 
-        // Escape ile yazi kutusundan cik, boylece G tusu Tozcu komutu olarak calisir
-        if (girdi.isFocused && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (girdi.isFocused)
         {
-            girdi.DeactivateInputField();
+            // Escape ile terminalden cik, oyuna (fareyle bakisa) don
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                girdi.DeactivateInputField();
+            }
+        }
+        else if (Keyboard.current.enterKey.wasPressedThisFrame
+                 && girdi.gameObject.activeInHierarchy
+                 && girdi.interactable)
+        {
+            // Imlec kilitliyken kutuya tiklanamaz, terminal Enter ile acilir
+            girdi.ActivateInputField();
         }
     }
 
-    // Enter'a basildiginda TMP bu metodu cagirir
-    private void EnterBasildi(string _)
+    // ARGUS belirince ilk sozu o soyler; bu konusma kasa kararini etkilemez
+    private async void KarsilamaYap()
     {
         if (mesgulMu)
         {
             return;
         }
 
-        MesajiGonder();
+        await Konus(KarsilamaIstegi, null, false);
     }
 
-    private async void MesajiGonder()
+    // Enter'a basildiginda TMP bu metodu cagirir
+    private async void EnterBasildi(string _)
     {
+        if (mesgulMu)
+        {
+            return;
+        }
+
         string metin = girdi.text.Trim();
         if (string.IsNullOrEmpty(metin))
         {
             return;
         }
 
-        mesgulMu = true;
-        Debug.Log("Oyuncu: " + metin);
         girdi.text = "";
         girdi.ActivateInputField();
-        cikti.text = "ARGUS düşünüyor...";
+        Debug.Log("Oyuncu: " + metin);
+
+        await Konus(metin, metin, true);
+    }
+
+    // Kaynaga sorar, cevabi yazar; kararUygula true ise kasa kararini da uygular
+    private async Task Konus(string istek, string oyuncuMetni, bool kararUygula)
+    {
+        mesgulMu = true;
+
+        string onEk = OyuncuSatiri(oyuncuMetni);
+        DaktiloyuDurdur();
+        cikti.text = onEk + "<i><color=#8C8C8C>ARGUS düşünüyor...</color></i>";
 
         ArgusCevap cevap;
         try
         {
-            cevap = await kaynak.CevapAlAsync(metin);
+            cevap = await kaynak.CevapAlAsync(istek);
         }
         catch (Exception hata)
         {
@@ -74,14 +125,48 @@ public class TerminalKontrolcu : MonoBehaviour
             cevap = ArgusCevap.Yedek();
         }
 
-        cikti.text = "ARGUS: " + cevap.reply;
+        daktilo = StartCoroutine(DaktiloYaz(onEk, cevap.reply ?? ""));
         Debug.Log("ARGUS: " + cevap.reply + " | kasa izni: " + cevap.unlock_vault);
 
-        if (kasa != null)
+        if (kararUygula && kasa != null)
         {
             kasa.ArgusKarariniUygula(cevap.unlock_vault);
         }
 
         mesgulMu = false;
+    }
+
+    // Oyuncunun son mesaji gri, kucuk bir satir olarak cevabin ustunde durur
+    private static string OyuncuSatiri(string oyuncuMetni)
+    {
+        if (string.IsNullOrEmpty(oyuncuMetni))
+        {
+            return "";
+        }
+
+        return "<size=80%><color=#8C8C8C>Sen: <noparse>" + oyuncuMetni + "</noparse></color></size>\n";
+    }
+
+    // Cevap harf harf yazilir; noparse, modelin metnindeki < > isaretlerinin bicim sanilmasini engeller
+    private IEnumerator DaktiloYaz(string onEk, string metin)
+    {
+        float bekleme = 1f / Mathf.Max(1f, yazmaHizi);
+
+        for (int i = 1; i <= metin.Length; i++)
+        {
+            cikti.text = onEk + "<noparse>" + metin.Substring(0, i) + "</noparse>";
+            yield return new WaitForSeconds(bekleme);
+        }
+
+        daktilo = null;
+    }
+
+    private void DaktiloyuDurdur()
+    {
+        if (daktilo != null)
+        {
+            StopCoroutine(daktilo);
+            daktilo = null;
+        }
     }
 }

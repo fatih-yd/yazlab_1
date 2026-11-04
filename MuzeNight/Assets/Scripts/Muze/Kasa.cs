@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 // Kilitli kasa. Acilmasi icin hem elektrigin acik olmasi hem de ARGUS'un izin vermesi gerekir.
@@ -6,6 +7,9 @@ public class Kasa : MonoBehaviour
 {
     [SerializeField] private PowerPanel elektrikPaneli;
     [SerializeField] private Renderer gosterge;
+    [SerializeField] private Transform kapiMenteseli;
+    [SerializeField] private float acilmaAcisi = 100f;
+    [SerializeField] private float acilmaSuresi = 1.5f;
 
     public bool AcikMi { get; private set; }
 
@@ -39,7 +43,30 @@ public class Kasa : MonoBehaviour
         }
 
         Debug.Log("Kasa acildi.");
+
+        if (kapiMenteseli != null)
+        {
+            StartCoroutine(KapiyiAc());
+        }
+
         KasaAcildi?.Invoke();
         return true;
+    }
+
+    // Kapi, menteşe noktasi etrafinda yumusakca doner
+    private IEnumerator KapiyiAc()
+    {
+        Quaternion baslangic = kapiMenteseli.localRotation;
+        Quaternion hedef = baslangic * Quaternion.Euler(0f, acilmaAcisi, 0f);
+        float gecen = 0f;
+
+        while (gecen < acilmaSuresi)
+        {
+            gecen += Time.deltaTime;
+            kapiMenteseli.localRotation = Quaternion.Slerp(baslangic, hedef, gecen / acilmaSuresi);
+            yield return null;
+        }
+
+        kapiMenteseli.localRotation = hedef;
     }
 }

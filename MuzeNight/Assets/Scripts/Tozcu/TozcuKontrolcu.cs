@@ -5,7 +5,9 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class TozcuKontrolcu : MonoBehaviour
 {
-    [SerializeField] private PowerPanel hedefPanel;
+    [SerializeField] private PowerPanel[] paneller;
+
+    private PowerPanel hedefPanel;
     [SerializeField] private float engelMesafesi = 1.5f;
     [SerializeField] private float yenidenPlanlamaBeklemesi = 0.5f;
 
@@ -15,6 +17,17 @@ public class TozcuKontrolcu : MonoBehaviour
     public EngelSensoru Sensor { get; private set; }
     public PowerPanel HedefPanel => hedefPanel;
     public float YenidenPlanlamaBeklemesi => yenidenPlanlamaBeklemesi;
+
+    // Engel algilandiktan sonra kisa bir sure engel kontrolu durur, boylece duvar yanindaki dongu olusmaz
+    [SerializeField] private float engelSogumaSuresi = 1.5f;
+    private float sonEngelZamani = -100f;
+
+    public bool EngelSogumaBitti => Time.time - sonEngelZamani >= engelSogumaSuresi;
+
+    public void EngelIsaretle()
+    {
+        sonEngelZamani = Time.time;
+    }
 
     private void Awake()
     {
@@ -42,13 +55,49 @@ public class TozcuKontrolcu : MonoBehaviour
     // Oyuncunun "sigorta paneline git" komutu.
     public void PaneleGitKomutu()
     {
-        if (hedefPanel == null)
+        PowerPanel siradaki = SiradakiPaneli();
+        if (siradaki == null)
         {
-            Debug.LogWarning("Tozcu icin hedef panel atanmamis.");
+            Debug.Log("Tozcu: enerjilendirilecek panel kalmadi.");
             return;
         }
 
+        hedefPanel = siradaki;
+        Debug.Log("Tozcu hedef: " + hedefPanel.name);
         DurumDegistir(new YolaCikDurumu());
+    }
+
+    // Sirayla: henuz elektrigi acilmamis ilk panel
+    private PowerPanel SiradakiPaneli()
+    {
+        if (paneller == null)
+        {
+            return null;
+        }
+
+        foreach (PowerPanel panel in paneller)
+        {
+            if (panel != null && !panel.ElektrikAcikMi)
+            {
+                return panel;
+            }
+        }
+
+        return null;
+    }
+
+    // Hedefin erisim noktasina olan mesafe (hedef yoksa sonsuz)
+    public float HedefeUzaklik
+    {
+        get
+        {
+            if (hedefPanel == null)
+            {
+                return float.PositiveInfinity;
+            }
+
+            return Vector3.Distance(transform.position, hedefPanel.ErisimNoktasi.position);
+        }
     }
 
     // Ajan hedefe ulasti mi?

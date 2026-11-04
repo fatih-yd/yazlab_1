@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Oyuncu karakteri. WASD ile yurur, G tusu ile Tozcu'ya "sigorta paneline git" komutu verir.
+// Birinci sahis oyuncu. Fareyle serbestce bakar, WASD ile yurur, G ile Tozcu'ya komut verir.
+// Oynarken imlec kilitli ve gizlidir; terminal acikken imlec serbest kalir ve bakis durur.
 [RequireComponent(typeof(CharacterController))]
 public class OyuncuKontrolcu : MonoBehaviour
 {
@@ -12,47 +13,53 @@ public class OyuncuKontrolcu : MonoBehaviour
     public static bool OyunBitti;
 
     [SerializeField] private float hiz = 4f;
+    [SerializeField] private float fareHassasiyeti = 0.1f;
+    [SerializeField] private Transform kamera;
     [SerializeField] private TozcuKontrolcu tozcu;
+
+    // Birinci sahis kamerada kendi govdemizi gormeyelim
+    [SerializeField] private bool govdeyiGizle = true;
 
     private CharacterController karakter;
     private float dikeyHiz;
+    private float bakisEgimi;
 
     private void Awake()
     {
         karakter = GetComponent<CharacterController>();
+
+        if (govdeyiGizle)
+        {
+            Renderer govde = GetComponent<Renderer>();
+            if (govde != null)
+            {
+                govde.enabled = false;
+            }
+        }
     }
 
     private void Update()
     {
         Keyboard klavye = Keyboard.current;
-        if (klavye == null)
+        Mouse fare = Mouse.current;
+        if (klavye == null || fare == null)
         {
             return;
         }
 
+        bool oynuyor = !HareketKilitli && !OyunBitti;
+        ImleciAyarla(oynuyor);
+
         Vector3 yon = Vector3.zero;
-        if (!HareketKilitli && !OyunBitti)
+
+        if (oynuyor)
         {
-            float yatay = 0f;
-            float dikey = 0f;
-            if (klavye.aKey.isPressed) yatay -= 1f;
-            if (klavye.dKey.isPressed) yatay += 1f;
-            if (klavye.sKey.isPressed) dikey -= 1f;
-            if (klavye.wKey.isPressed) dikey += 1f;
+            BakisiGuncelle(fare);
+            yon = HareketYonu(klavye);
 
-            // Dunya eksenine gore yuruyoruz: W = ileri (+Z), D = sag (+X)
-            yon = new Vector3(yatay, 0f, dikey).normalized;
-
-            if (klavye.gKey.wasPressedThisFrame)
+            if (klavye.gKey.wasPressedThisFrame && tozcu != null)
             {
-                if (tozcu == null)
-                {
-                    Debug.LogWarning("Oyuncu: Tozcu alani bos. Inspector'da Tozcu'yu ata.");
-                }
-                else
-                {
-                    tozcu.PaneleGitKomutu();
-                }
+                tozcu.PaneleGitKomutu();
             }
         }
 
@@ -65,5 +72,45 @@ public class OyuncuKontrolcu : MonoBehaviour
 
         Vector3 hareket = yon * hiz + Vector3.up * dikeyHiz;
         karakter.Move(hareket * Time.deltaTime);
+    }
+
+    // Oynarken imlec ortada kilitli ve gizli, terminal acikken ya da oyun bitince serbest
+    private void ImleciAyarla(bool oynuyor)
+    {
+        CursorLockMode istenen = oynuyor ? CursorLockMode.Locked : CursorLockMode.None;
+        if (Cursor.lockState != istenen)
+        {
+            Cursor.lockState = istenen;
+            Cursor.visible = !oynuyor;
+        }
+    }
+
+    // Fare hareketi bakisi dondurur: yatayda govde, dikeyde sadece kamera
+    private void BakisiGuncelle(Mouse fare)
+    {
+        Vector2 delta = fare.delta.ReadValue();
+
+        transform.Rotate(0f, delta.x * fareHassasiyeti, 0f);
+
+        bakisEgimi = Mathf.Clamp(bakisEgimi - delta.y * fareHassasiyeti, -80f, 80f);
+        if (kamera != null)
+        {
+            kamera.localRotation = Quaternion.Euler(bakisEgimi, 0f, 0f);
+        }
+    }
+
+    // Bakilan yone gore hareket: W = ileri, D = sag (karakterin kendi eksenine gore)
+    private Vector3 HareketYonu(Keyboard klavye)
+    {
+        float yatay = 0f;
+        float dikey = 0f;
+
+        if (klavye.aKey.isPressed) yatay -= 1f;
+        if (klavye.dKey.isPressed) yatay += 1f;
+        if (klavye.sKey.isPressed) dikey -= 1f;
+        if (klavye.wKey.isPressed) dikey += 1f;
+
+        Vector3 yon = transform.right * yatay + transform.forward * dikey;
+        return yon.normalized;
     }
 }

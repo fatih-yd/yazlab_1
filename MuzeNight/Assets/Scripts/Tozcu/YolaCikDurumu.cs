@@ -10,15 +10,22 @@ public class YolaCikDurumu : ITozcuDurumu
 
     public void Update(TozcuKontrolcu tozcu)
     {
-        if (tozcu.Sensor.EngelVarMi())
-        {
-            tozcu.DurumDegistir(new EngelAlgilandiDurumu());
-            return;
-        }
-
+        // Once hedefe vardi mi kontrol et. Hedef panelin kendisi raycast'te engel gibi gorunebilir,
+        // bu yuzden varis kontrolu engel kontrolunden once yapilir.
         if (tozcu.PaneleVardiMi())
         {
             tozcu.DurumDegistir(new PanelindeDurumu());
+            return;
+        }
+
+        // Hedefe cok yakinken isin, hedefin kendisini engel sanabilir.
+        // Son yaklasmada NavMesh zaten engelleri asar, bu yuzden isini kontrolunu atliyoruz.
+        bool hedefeYakin = tozcu.HedefeUzaklik < 2f;
+
+        if (!hedefeYakin && tozcu.EngelSogumaBitti && tozcu.Sensor.EngelVarMi())
+        {
+            tozcu.EngelIsaretle();
+            tozcu.DurumDegistir(new EngelAlgilandiDurumu());
         }
     }
 
