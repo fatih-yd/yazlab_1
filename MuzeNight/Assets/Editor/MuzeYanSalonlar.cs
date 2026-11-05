@@ -51,8 +51,9 @@ public static class MuzeYanSalonlar
         Duvar(ana, "Kapi_Guney_Ust", new Vector3(6f, 2.7f, -10.25f), new Vector3(2.2f, 0.6f, 0.5f), duvar);
 
         // Kapilarin ustunde salon adlari (ana salondan bakana donuk)
-        MuzeGorunum.Tabela(ana, "HEYKEL GALERİSİ", new Vector3(-10.5f, 2.7f, 9.98f), 0f);
-        MuzeGorunum.Tabela(ana, "ANTİK MISIR SALONU", new Vector3(6f, 2.7f, -9.98f), 180f);
+        // Kapi tabelalari sutunlarin onunde ve kapi genisligine sigacak boyda
+        MuzeGorunum.Tabela(ana, "HEYKEL GALERİSİ", new Vector3(-10.5f, 2.7f, 9.6f), 0f, 1.5f);
+        MuzeGorunum.Tabela(ana, "ANTİK MISIR SALONU", new Vector3(6f, 2.7f, -9.6f), 180f, 1.3f);
     }
 
     // ---------------------------------------------------------------- Heykel Galerisi

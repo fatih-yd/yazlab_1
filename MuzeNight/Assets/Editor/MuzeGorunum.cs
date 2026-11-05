@@ -448,7 +448,7 @@ public static class MuzeGorunum
         Tabela(ana, "KASA - GÜVENLİK BÖLGESİ", new Vector3(14.85f, 2.35f, 0f), 90f);
     }
 
-    internal static void Tabela(Transform ana, string yazi, Vector3 konum, float yDonus)
+    internal static void Tabela(Transform ana, string yazi, Vector3 konum, float yDonus, float boyut = 3f)
     {
         GameObject g = new GameObject("Tabela");
         g.transform.SetParent(ana, false);
@@ -457,7 +457,7 @@ public static class MuzeGorunum
 
         TextMeshPro t = g.AddComponent<TextMeshPro>();
         t.text = yazi;
-        t.fontSize = 3f;
+        t.fontSize = boyut;
         t.alignment = TextAlignmentOptions.Center;
         t.color = new Color(0.95f, 0.8f, 0.45f);
         t.rectTransform.sizeDelta = new Vector2(8f, 1f);
