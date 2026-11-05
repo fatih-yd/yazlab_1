@@ -57,5 +57,5 @@ Ollama'nın `message.content` alanındaki JSON şu yapıda olmalı:
 
 - Terminal cevabı `ICevapKaynagi` arayüzünden ister (`Assets/Scripts/Terminal/`).
 - Gerçek ARGUS için terminalin üstüne `OllamaArgusKaynagi` bileşeni takılır (`Assets/Scripts/Argus/`). Bu bileşen `OllamaArgusClient` ile Ollama'ya soruyor ve cevabı terminalin kullandığı `ArgusCevap`'a çeviriyor.
-- Ollama olmadan denemek için `SahteArgusKaynagi` takılabilir. Bu sadece geliştirme içindir, son oyunda `OllamaArgusKaynagi` kalmalı.
-- Böylece iki taraf birbirini beklemeden geliştirebilir.
+- Geliştirme sırasında Ollama olmadan denemek için sahte bir kaynak kullanılmıştı. Son sürümde sahte kaynak kaldırıldı, ARGUS'un bütün cevapları yerel modelden gelir.
+- Arayüz sayesinde iki taraf birbirini beklemeden geliştirebildi.

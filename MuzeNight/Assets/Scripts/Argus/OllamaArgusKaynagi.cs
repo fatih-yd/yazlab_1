@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using MuzeGecesi.Argus;
 
-// Terminal ile Ollama arasındaki köprü. Terminaldeki SahteArgusKaynagi yerine bu takılır.
+// Terminal ile Ollama arasındaki köprü. Terminalin cevap kaynağı budur.
 // Terminal cevabı ICevapKaynagi'dan ister, biz de OllamaArgusClient'a soruyoruz.
 public class OllamaArgusKaynagi : MonoBehaviour, ICevapKaynagi
 {
