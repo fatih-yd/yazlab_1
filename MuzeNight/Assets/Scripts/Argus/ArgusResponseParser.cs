@@ -36,6 +36,10 @@ namespace MuzeGecesi.Argus
             // iki sorudan biri hayırsa kasayı açmıyoruz.
             if (soruVar && (!parsed.yetki_belirtti || !parsed.neden_kasayla_ilgili))
             {
+                if (parsed.unlock_vault)
+                {
+                    parsed.celiskili = true;
+                }
                 parsed.unlock_vault = false;
             }
 

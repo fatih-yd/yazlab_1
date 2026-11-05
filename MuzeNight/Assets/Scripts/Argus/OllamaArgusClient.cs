@@ -76,53 +76,39 @@ namespace MuzeGecesi.Argus
 
             try
             {
-                // Ollama'ya gidecek isteği hazırla
-                OllamaChatRequest request = new OllamaChatRequest();
-                request.model = model;
-                request.messages = new List<OllamaMessage>();
-                request.messages.Add(new OllamaMessage { role = "system", content = ArgusPrompt.SystemPrompt });
-
                 // Oyuncu daha önce yetkisini belirttiyse modele bunu söylüyoruz
                 string userText = playerText;
                 if (authorityClaimed)
                 {
                     userText = "[Bilgi: oyuncu daha önce kasaya erişim hakkı olan bir görevli olduğunu söyledi]\n" + playerText;
                 }
-                request.messages.Add(new OllamaMessage { role = "user", content = userText });
-                request.stream = false;
-                request.format = "json";
-                request.keep_alive = "30m"; // model 30 dakika bellekte kalsın
-                request.options = new OllamaOptions { temperature = 0.2f };
 
-                string body = JsonUtility.ToJson(request);
-                StringContent content = new StringContent(body, Encoding.UTF8, "application/json");
-
-                // Süre dolunca istek iptal olur
-                CancellationTokenSource timer = new CancellationTokenSource(TimeSpan.FromSeconds(limit));
-
-                // await bekleme sırasında oyunu dondurmaz
-                HttpResponseMessage httpResponse = await http.PostAsync(chatUrl, content, timer.Token);
-
-                // Model yüklü değilse Ollama 404 döner
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    return ArgusResponse.Fallback("Ollama hata kodu döndü: " + (int)httpResponse.StatusCode);
-                }
-
-                isWarm = true;
-                string responseText = await httpResponse.Content.ReadAsStringAsync();
-                OllamaChatResponse chat = JsonUtility.FromJson<OllamaChatResponse>(responseText);
+                string modelMetni = await ModeleSor(userText, limit);
 
                 ArgusResponse response;
-                if (ArgusResponseParser.TryParse(chat.message.content, out response))
+                if (!ArgusResponseParser.TryParse(modelMetni, out response))
                 {
-                    if (response.yetki_belirtti)
-                    {
-                        authorityClaimed = true;
-                    }
-                    return response;
+                    return ArgusResponse.Fallback("Modelin cevabı geçerli JSON değil: " + modelMetni);
                 }
-                return ArgusResponse.Fallback("Modelin cevabı geçerli JSON değil: " + chat.message.content);
+
+                // Model iki sorudan birine hayır deyip yine de kasayı açtığını söylerse
+                // aynı mesajı kısa bir notla bir kez daha soruyoruz (kasa zaten kapalı kalır)
+                if (CevapCelisiyor(response))
+                {
+                    Debug.Log("[ARGUS] Cevap kendi kararıyla çelişti, tekrar soruluyor: " + response.reply);
+                    string ikinciMetin = await ModeleSor(userText + CeliskiNotu, timeoutSeconds);
+                    ArgusResponse ikinci;
+                    if (ArgusResponseParser.TryParse(ikinciMetin, out ikinci))
+                    {
+                        response = ikinci;
+                    }
+                }
+
+                if (response.yetki_belirtti)
+                {
+                    authorityClaimed = true;
+                }
+                return response;
             }
             catch (OperationCanceledException)
             {
@@ -136,6 +122,52 @@ namespace MuzeGecesi.Argus
             {
                 return ArgusResponse.Fallback("Beklenmeyen hata: " + e.Message);
             }
+        }
+
+        private const string CeliskiNotu = "\n[Not: Bu mesajda yetki_belirtti ya da neden_kasayla_ilgili false ise reply alanında kasayı açtığını ya da içeri aldığını söyleme, eksik olanı sor.]";
+
+        // Iki soru da evet degilken model kasayi actigini soyluyor mu?
+        private bool CevapCelisiyor(ArgusResponse r)
+        {
+            if (r.yetki_belirtti && r.neden_kasayla_ilgili)
+            {
+                return false;
+            }
+            return r.celiskili || r.reply.Contains("açıyorum") || r.reply.Contains("içeri alıyorum");
+        }
+
+        // Ollama'ya bir istek gönderir, modelin yazdığı metni döndürür
+        private async Task<string> ModeleSor(string userText, float limit)
+        {
+            OllamaChatRequest request = new OllamaChatRequest();
+            request.model = model;
+            request.messages = new List<OllamaMessage>();
+            request.messages.Add(new OllamaMessage { role = "system", content = ArgusPrompt.SystemPrompt });
+            request.messages.Add(new OllamaMessage { role = "user", content = userText });
+            request.stream = false;
+            request.format = "json";
+            request.keep_alive = "30m"; // model 30 dakika bellekte kalsın
+            request.options = new OllamaOptions { temperature = 0.2f };
+
+            string body = JsonUtility.ToJson(request);
+            StringContent content = new StringContent(body, Encoding.UTF8, "application/json");
+
+            // Süre dolunca istek iptal olur
+            CancellationTokenSource timer = new CancellationTokenSource(TimeSpan.FromSeconds(limit));
+
+            // await bekleme sırasında oyunu dondurmaz
+            HttpResponseMessage httpResponse = await http.PostAsync(chatUrl, content, timer.Token);
+
+            // Model yüklü değilse Ollama 404 döner
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException("Ollama hata kodu döndü: " + (int)httpResponse.StatusCode);
+            }
+
+            isWarm = true;
+            string responseText = await httpResponse.Content.ReadAsStringAsync();
+            OllamaChatResponse chat = JsonUtility.FromJson<OllamaChatResponse>(responseText);
+            return chat.message.content;
         }
     }
 }

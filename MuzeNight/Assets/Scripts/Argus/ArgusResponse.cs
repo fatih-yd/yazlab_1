@@ -12,6 +12,9 @@ namespace MuzeGecesi.Argus
         public string reply;
         public bool unlock_vault;
 
+        // Model kasayi acmak istedi ama iki sorudan biri hayirdi (parser kasayi kapali tuttu)
+        public bool celiskili;
+
         // Hata olursa bunlar dolar, konsola yazmak için kullanıyoruz
         public bool isError;
         public string errorReason;
