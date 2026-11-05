@@ -17,6 +17,14 @@ public static class MuzeGorunum
     [MenuItem("Tools/Muze/Gorunumu Guzellestir")]
     public static void GorunumuGuzellestir()
     {
+        // Yanlislikla menu sahnesine kurulmasin
+        string sahne = EditorSceneManager.GetActiveScene().name;
+        if (sahne != "muze")
+        {
+            EditorUtility.DisplayDialog("Yanlış sahne", "Bu araç sadece 'muze' sahnesinde çalışır. Şu an açık sahne: " + sahne, "Tamam");
+            return;
+        }
+
         Atmosfer();
 
         GameObject eski = GameObject.Find(DekorAdi);
@@ -38,6 +46,7 @@ public static class MuzeGorunum
         KasaIsigi(kok.transform);
         TerminaliParlat();
         TozcuyuRobotYap();
+        KamerayiAyarla();
         MuzeYanSalonlar.Kur(kok.transform);
 
         AssetDatabase.SaveAssets();
@@ -61,8 +70,9 @@ public static class MuzeGorunum
         RenderSettings.ambientLight = new Color(0.09f, 0.10f, 0.15f);
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.ExponentialSquared;
-        RenderSettings.fogColor = new Color(0.03f, 0.04f, 0.07f);
-        RenderSettings.fogDensity = 0.025f;
+        // Hafif sis: uzaktaki duvarlar biraz bulaniklassin
+        RenderSettings.fogColor = new Color(0.07f, 0.08f, 0.11f);
+        RenderSettings.fogDensity = 0.035f;
 
         Light[] isiklar = Object.FindObjectsByType<Light>(FindObjectsSortMode.None);
         foreach (Light isik in isiklar)
@@ -88,7 +98,7 @@ public static class MuzeGorunum
     private static void TavanLambalari(Transform ana)
     {
         Material lamba = Materyal("DekorLamba", new Color(0.9f, 0.85f, 0.7f), 0.1f, new Color(1f, 0.85f, 0.6f) * 1.5f);
-        float[] xler = { -9f, 6f };
+        float[] xler = { -9f, -3f, 6f };
         float[] zler = { -5f, 5f };
 
         foreach (float x in xler)
@@ -165,10 +175,56 @@ public static class MuzeGorunum
             TabloEkle(ana, cerceve, lamba, plakaMat, no, guneyDosya[i], guneyBilgi[i], renkler[(i + 2) % renkler.Length], renkler[(i + 4) % renkler.Length], new Vector3(guneyX[i], 1.85f, -10f), "Tablo_Guney_" + i);
             no++;
         }
+
+        // Yan duvarlar: bati duvari, ara duvarin iki yuzu ve dogu duvari
+        Vector3 doguya = new Vector3(1f, 0f, 0f);
+        Vector3 batiya = new Vector3(-1f, 0f, 0f);
+        YanTablo(ana, cerceve, lamba, plakaMat, 30, "karda_avcilar", "Karda Avcılar\nPieter Bruegel, 1565", new Vector3(-15f, 1.85f, -8.3f), doguya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 31, "sis_denizi", "Sis Denizinde Gezgin\nC. D. Friedrich, 1818", new Vector3(-15f, 1.85f, 8.3f), doguya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 32, "izlenim", "İzlenim, Gün Doğumu\nClaude Monet, 1872", new Vector3(-6.25f, 1.85f, -5.5f), batiya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 33, "sutcu_kiz", "Sütçü Kız\nJohannes Vermeer, 1658", new Vector3(-6.25f, 1.85f, 5.5f), batiya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 34, "grande_jatte", "Grande Jatte'de Pazar\nGeorges Seurat, 1884", new Vector3(-5.75f, 1.85f, -5.5f), doguya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 35, "iki_muzisyen", "İki Müzisyen Kız\nOsman Hamdi Bey, 1880", new Vector3(-5.75f, 1.85f, 5.5f), doguya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 36, "atina_okulu", "Atina Okulu\nRaffaello, 1511", new Vector3(15f, 1.85f, -7.8f), batiya);
+        YanTablo(ana, cerceve, lamba, plakaMat, 37, "nilufer", "Nilüferler\nClaude Monet, 1906", new Vector3(15f, 1.85f, 7.8f), batiya);
     }
 
-    // konum: tablonun duvar yuzeyindeki orta noktasi
+    private static void YanTablo(Transform ana, Material cerceve, Material lamba, Material plakaMat, int no, string dosya, string bilgi, Vector3 konum, Vector3 iceYon)
+    {
+        TabloEkle(ana, cerceve, lamba, plakaMat, no, dosya, bilgi, Color.gray, Color.black, konum, iceYon, "Tablo_Yan_" + no);
+    }
+
+    // Oyuncunun kamerasi yerden yaklasik 1.6 m yukseklikte olsun (gozun normal hizasi).
+    // Oyuncunun merkezi yerden 1 m yukarida oldugu icin kamera 0.6 m yukari konur.
+    private static void KamerayiAyarla()
+    {
+        GameObject oyuncu = GameObject.Find("oyuncu");
+        if (oyuncu == null)
+        {
+            return;
+        }
+
+        Camera kamera = oyuncu.GetComponentInChildren<Camera>();
+        if (kamera == null)
+        {
+            return;
+        }
+
+        Undo.RecordObject(kamera.transform, "Kamera yuksekligi");
+        Vector3 konum = kamera.transform.localPosition;
+        konum.y = 0.6f;
+        kamera.transform.localPosition = konum;
+    }
+
+    // Kuzey/guney duvarlari icin: kuzeydeki tablolar odaya (-z), guneydekiler +z yonune bakar
     internal static void TabloEkle(Transform ana, Material cerceve, Material lamba, Material plakaMat, int no, string dosya, string bilgi, Color renk1, Color renk2, Vector3 konum, string ad)
+    {
+        Vector3 iceYon = konum.z > 0f ? new Vector3(0f, 0f, -1f) : new Vector3(0f, 0f, 1f);
+        TabloEkle(ana, cerceve, lamba, plakaMat, no, dosya, bilgi, renk1, renk2, konum, iceYon, ad);
+    }
+
+    // konum: tablonun duvar yuzeyindeki orta noktasi, iceYon: duvardan odaya dogru yon
+    internal static void TabloEkle(Transform ana, Material cerceve, Material lamba, Material plakaMat, int no, string dosya, string bilgi, Color renk1, Color renk2, Vector3 konum, Vector3 iceYon, string ad)
     {
         Texture2D doku = null;
         if (dosya != "")
@@ -190,11 +246,11 @@ public static class MuzeGorunum
             yukseklik = genislik / oran;
         }
 
-        // Kuzey duvarindaki tablolar odaya (-z), guneydekiler +z yonune bakar
-        float iceYon = konum.z > 0f ? -1f : 1f;
-        Quaternion donus = iceYon < 0f ? Quaternion.identity : Quaternion.Euler(0f, 180f, 0f);
+        // Quad'in gorunen yuzu -z'ye bakar. Donus, gorunen yuzu odaya (iceYon) cevirir.
+        Quaternion donus = Quaternion.LookRotation(-iceYon);
 
-        Nesne(ad + "_Cerceve", PrimitiveType.Cube, ana, new Vector3(konum.x, konum.y, konum.z + iceYon * 0.04f), new Vector3(genislik + 0.2f, yukseklik + 0.2f, 0.08f), cerceve);
+        Nesne(ad + "_Cerceve", PrimitiveType.Cube, ana, konum + iceYon * 0.04f, new Vector3(genislik + 0.2f, yukseklik + 0.2f, 0.08f), cerceve)
+            .transform.localRotation = donus;
 
         // Resim biraz parlak olsun ki karanlikta secilsin
         Material resim = Materyal("DekorTablo_" + no, Color.white, 0.2f, Color.white * 0.3f);
@@ -202,20 +258,25 @@ public static class MuzeGorunum
         resim.SetTexture("_EmissionMap", doku);
         EditorUtility.SetDirty(resim);
 
-        GameObject resimNesnesi = Nesne(ad + "_Resim", PrimitiveType.Quad, ana, new Vector3(konum.x, konum.y, konum.z + iceYon * 0.085f), new Vector3(genislik, yukseklik, 1f), resim);
+        GameObject resimNesnesi = Nesne(ad + "_Resim", PrimitiveType.Quad, ana, konum + iceYon * 0.085f, new Vector3(genislik, yukseklik, 1f), resim);
         resimNesnesi.transform.localRotation = donus;
 
         // Tablonun ustunde kucuk bir lamba
         float lambaY = Mathf.Min(konum.y + yukseklik / 2f + 0.2f, 2.72f);
-        Nesne(ad + "_Lamba", PrimitiveType.Cube, ana, new Vector3(konum.x, lambaY, konum.z + iceYon * 0.08f), new Vector3(0.9f, 0.06f, 0.14f), lamba);
+        Vector3 lambaKonum = konum + iceYon * 0.08f;
+        lambaKonum.y = lambaY;
+        Nesne(ad + "_Lamba", PrimitiveType.Cube, ana, lambaKonum, new Vector3(0.9f, 0.06f, 0.14f), lamba).transform.localRotation = donus;
 
         // Altta lambrinin ustunde isim plakasi
-        Vector3 plakaKonum = new Vector3(konum.x, 0.82f, konum.z + iceYon * 0.06f);
-        Nesne(ad + "_Plaka", PrimitiveType.Cube, ana, plakaKonum, new Vector3(1.3f, 0.3f, 0.03f), plakaMat);
+        Vector3 plakaKonum = konum + iceYon * 0.06f;
+        plakaKonum.y = 0.82f;
+        Nesne(ad + "_Plaka", PrimitiveType.Cube, ana, plakaKonum, new Vector3(1.3f, 0.3f, 0.03f), plakaMat).transform.localRotation = donus;
 
         GameObject yaziNesnesi = new GameObject(ad + "_PlakaYazi");
         yaziNesnesi.transform.SetParent(ana, false);
-        yaziNesnesi.transform.localPosition = new Vector3(konum.x, 0.82f, konum.z + iceYon * 0.08f);
+        Vector3 yaziKonum = konum + iceYon * 0.08f;
+        yaziKonum.y = 0.82f;
+        yaziNesnesi.transform.localPosition = yaziKonum;
         yaziNesnesi.transform.localRotation = donus;
         TextMeshPro yazi = yaziNesnesi.AddComponent<TextMeshPro>();
         yazi.text = bilgi;
