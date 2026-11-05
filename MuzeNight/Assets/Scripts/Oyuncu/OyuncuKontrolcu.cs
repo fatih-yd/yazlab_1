@@ -12,8 +12,11 @@ public class OyuncuKontrolcu : MonoBehaviour
     // Oyun bittiginde true olur. Hareket ve komutlar tamamen durur.
     public static bool OyunBitti;
 
+    // Esc menusu acikken true olur
+    public static bool Duraklatildi;
+
     [SerializeField] private float hiz = 4f;
-    [SerializeField] private float fareHassasiyeti = 0.1f;
+    [SerializeField] private float kosmaCarpani = 1.7f;
     [SerializeField] private Transform kamera;
     [SerializeField] private TozcuKontrolcu tozcu;
 
@@ -27,6 +30,11 @@ public class OyuncuKontrolcu : MonoBehaviour
     private void Awake()
     {
         karakter = GetComponent<CharacterController>();
+
+        // Bu degiskenler static, ana menuden tekrar baslayinca eski oyundan kalmasin
+        HareketKilitli = false;
+        OyunBitti = false;
+        Duraklatildi = false;
 
         if (govdeyiGizle)
         {
@@ -47,7 +55,7 @@ public class OyuncuKontrolcu : MonoBehaviour
             return;
         }
 
-        bool oynuyor = !HareketKilitli && !OyunBitti;
+        bool oynuyor = !HareketKilitli && !OyunBitti && !Duraklatildi;
         ImleciAyarla(oynuyor);
 
         Vector3 yon = Vector3.zero;
@@ -70,7 +78,9 @@ public class OyuncuKontrolcu : MonoBehaviour
         }
         dikeyHiz += Physics.gravity.y * Time.deltaTime;
 
-        Vector3 hareket = yon * hiz + Vector3.up * dikeyHiz;
+        // Sol Shift basiliyken kosar
+        float anlikHiz = klavye.leftShiftKey.isPressed ? hiz * kosmaCarpani : hiz;
+        Vector3 hareket = yon * anlikHiz + Vector3.up * dikeyHiz;
         karakter.Move(hareket * Time.deltaTime);
     }
 
@@ -89,6 +99,9 @@ public class OyuncuKontrolcu : MonoBehaviour
     private void BakisiGuncelle(Mouse fare)
     {
         Vector2 delta = fare.delta.ReadValue();
+
+        // Hassasiyet ayarlar menusunden gelir
+        float fareHassasiyeti = Ayarlar.FareHassasiyeti;
 
         transform.Rotate(0f, delta.x * fareHassasiyeti, 0f);
 
