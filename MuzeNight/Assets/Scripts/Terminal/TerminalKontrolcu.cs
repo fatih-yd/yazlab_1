@@ -30,6 +30,12 @@ public class TerminalKontrolcu : MonoBehaviour
         kaynak = GetComponent<ICevapKaynagi>();
         girdi.onSubmit.AddListener(EnterBasildi);
 
+        // Uzun cevaplar panelden tasmasin: satir kaydir, sigmazsa yaziyi kucult
+        cikti.textWrappingMode = TextWrappingModes.Normal;
+        cikti.enableAutoSizing = true;
+        cikti.fontSizeMin = 16f;
+        cikti.fontSizeMax = 26f;
+
         gorunurluk = GetComponent<ArgusGorunurluk>();
         if (gorunurluk != null)
         {
@@ -144,17 +150,25 @@ public class TerminalKontrolcu : MonoBehaviour
             return "";
         }
 
-        return "<size=80%><color=#8C8C8C>Sen: <noparse>" + oyuncuMetni + "</noparse></color></size>\n";
+        return "<size=80%><color=#8C8C8C>Sen: " + Temizle(oyuncuMetni) + "</color></size>\n";
     }
 
-    // Cevap harf harf yazilir; noparse, modelin metnindeki < > isaretlerinin bicim sanilmasini engeller
+    // Metindeki < > isaretleri bicim etiketi sanilmasin diye benzer isaretlerle degistirilir.
+    // (Onceden noparse kullaniliyordu ama TextMeshPro noparse icindeki metni alt satira kaydirmiyor.)
+    private static string Temizle(string metin)
+    {
+        return metin.Replace("<", "‹").Replace(">", "›");
+    }
+
+    // Cevap harf harf yazilir
     private IEnumerator DaktiloYaz(string onEk, string metin)
     {
         float bekleme = 1f / Mathf.Max(1f, yazmaHizi);
+        metin = Temizle(metin);
 
         for (int i = 1; i <= metin.Length; i++)
         {
-            cikti.text = onEk + "<noparse>" + metin.Substring(0, i) + "</noparse>";
+            cikti.text = onEk + metin.Substring(0, i);
             yield return new WaitForSeconds(bekleme);
         }
 
