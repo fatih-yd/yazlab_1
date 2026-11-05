@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 // Kasa acilinca oyunu bitirir: oyuncu ve terminal hemen kilitlenir,
 // sonuc paneli kapi animasyonu izlensin diye kisa bir gecikmeyle acilir.
@@ -128,14 +129,47 @@ public class OyunSonuEkrani : MonoBehaviour
     {
         yield return new WaitForSeconds(gosterimGecikmesi);
 
+        // ARGUS'un yazisma paneli bitis yazisiyla ust uste binmesin
+        GameObject diyalog = GameObject.Find("DiyalogPaneli");
+        if (diyalog != null)
+        {
+            diyalog.SetActive(false);
+        }
+
         if (sonucPaneli != null)
         {
             sonucPaneli.SetActive(true);
+
+            // Paneli tum ekrani kaplayan koyu bir perde yap
+            RectTransform prt = sonucPaneli.GetComponent<RectTransform>();
+            if (prt != null)
+            {
+                prt.anchorMin = Vector2.zero;
+                prt.anchorMax = Vector2.one;
+                prt.offsetMin = Vector2.zero;
+                prt.offsetMax = Vector2.zero;
+            }
+            Image perde = sonucPaneli.GetComponent<Image>();
+            if (perde != null)
+            {
+                perde.color = new Color(0.02f, 0.02f, 0.04f, 0.85f);
+            }
         }
 
         if (sonucYazisi != null)
         {
-            sonucYazisi.text = "Firavun maskesini ve kasadaki eserleri kurtardın.\nOyun bitti! (Ana menü için Esc)";
+            // Yazi ekranin ortasinda, genis bir kutuda
+            RectTransform yrt = sonucYazisi.rectTransform;
+            yrt.anchorMin = new Vector2(0.5f, 0.5f);
+            yrt.anchorMax = new Vector2(0.5f, 0.5f);
+            yrt.pivot = new Vector2(0.5f, 0.5f);
+            yrt.anchoredPosition = Vector2.zero;
+            yrt.sizeDelta = new Vector2(1400f, 300f);
+            sonucYazisi.alignment = TextAlignmentOptions.Center;
+            sonucYazisi.textWrappingMode = TextWrappingModes.Normal;
+            sonucYazisi.fontSize = 46f;
+            sonucYazisi.color = ArayuzYardimci.Altin;
+            sonucYazisi.text = "Firavun maskesini ve kasadaki eserleri kurtardın.\n<size=60%>Oyun bitti! Ana menü için Esc'ye bas.</size>";
         }
     }
 }
