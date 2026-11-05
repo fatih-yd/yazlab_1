@@ -54,7 +54,7 @@ public class TozcuTesti : MonoBehaviour
         tozcu = FindFirstObjectByType<TozcuKontrolcu>();
 
         Canvas canvas = ArayuzYardimci.CanvasOlustur("TestCanvas", 60);
-        yazi = ArayuzYardimci.Yazi(canvas.transform, "", 22f, new Vector2(-560f, 380f), new Vector2(760f, 260f), Color.white);
+        yazi = ArayuzYardimci.Yazi(canvas.transform, "", 22f, new Vector2(-560f, 300f), new Vector2(760f, 300f), Color.white);
         yazi.alignment = TextAlignmentOptions.TopLeft;
 
         if (calisiyor && tozcu != null)

@@ -6,7 +6,7 @@
 |---|---|
 | **Proje adı** | Müze Gecesi |
 | **Ekip üyeleri** | Fatih Yardım (fatih-yd), Gani Efe Harputlu |
-| **Tarih** | 2 Kasım 2026 |
+| **Tarih** | 6 Kasım 2026 |
 | **Oyun motoru** | Unity 6.3 LTS (6000.3.27f1), 3D Built-in Render Pipeline, C# |
 | **Yerel LLM** | Ollama üzerinde `qwen2.5:3b` |
 
@@ -22,6 +22,7 @@
 6. [Sonuç ve tartışma](#6-sonuç-ve-tartışma)
 7. [Kurulum ve çalıştırma](#7-kurulum-ve-çalıştırma)
 8. [Proje yapısı](#8-proje-yapısı)
+9. [Kaynaklar](#9-kaynaklar)
 
 ---
 
@@ -36,13 +37,44 @@ Tek bir Unity oyununda iki yapay zekâ bileşenini birlikte çalıştırmak:
 - **Yerel LLM destekli NPC (ARGUS):** Kasanın önündeki güvenlik terminali. Oyuncu ona serbest metinle yazar, ARGUS kurallarına göre kasayı açıp açmamaya karar verir.
 
 ### Oyun senaryosu
-1. Oyuncu Tozcu'ya "sigorta paneline git" komutunu verir (**G** tuşu).
-2. Tozcu engelleri aşarak panele gider ve elektriği açar. Panel kırmızıdan yeşile döner.
-3. Oyuncu kasanın terminalinde ARGUS ile konuşur.
-4. ARGUS, iki koşul sağlandığında kasayı açabilir:
+Gece yarısı müzede elektrikler kesilmiştir. Güvenlik yapay zekası ARGUS yedek güçle kasayı kilitlemiş, firavun maskesi ve en değerli eserler kasaya taşınmıştır.
+
+1. Oyun ana menüyle açılır (**Oyuna Başla, Ayarlar, Kontroller, Çıkış**).
+2. Oyuncu "Antik Eserler Salonu"nda başlar. İsterse eser plakalarını ve yan salonlardaki notları okuyarak (**E** tuşu) ARGUS'u nasıl ikna edeceğine dair ipuçları toplar.
+3. Oyuncu Tozcu'ya "sigorta paneline git" komutunu verir (**G** tuşu).
+4. Tozcu engelleri aşarak panele gider ve elektriği açar. Panel kırmızıdan yeşile döner.
+5. Oyuncu kasanın terminalinde ARGUS ile konuşur. Sağ üstteki **ARGUS GÜVENİ** çubuğu (0–100) ne kadar yaklaştığını gösterir.
+6. ARGUS, iki koşul sağlandığında kasayı açabilir:
    - Oyuncu kasaya erişim hakkı olan bir görevli olduğunu söylemiş olmalı,
    - Nedeni kasadaki eserlerle ilgili acil bir durum olmalı.
-5. Kasa açılırsa ve elektrik açıksa oyun biter ("Kasa açıldı. Oyun bitti!").
+7. ARGUS izin verirse ve elektrik açıksa kasanın kapısı açılır, içeriden altın bir ışık yayılır.
+8. Oyuncu kasanın yanına gidip **E**'ye basar ve eserleri alır. Oyun biter ("Firavun maskesini ve kasadaki eserleri kurtardın.").
+
+```mermaid
+flowchart LR
+    A[Ana menü] --> B[Antik Eserler Salonu]
+    B --> C{İpuçları<br/>isteğe bağlı}
+    C -->|Plakalar, notlar| B
+    B --> D[G: Tozcu panele gider]
+    D --> E[Elektrik açılır]
+    E --> F[ARGUS terminali]
+    F --> G{ARGUS ikna oldu mu?<br/>güven 100}
+    G -- Hayır --> F
+    G -- Evet --> H[Kasa kapısı açılır]
+    H --> I[E: eserleri al, oyun biter]
+```
+
+### Oyun dünyası
+- **Antik Eserler Salonu (başlangıç):** Kaidelerde üç eser. Plakaları kasanın kurallarını anlatır.
+- **Heykel Galerisi (kuzey):** Büstler, kordonla çevrili bir heykel ve bankta "Gece Bekçisinin Notu".
+- **Antik Mısır Salonu (güney):** Lahit, piramit maketleri, dikilitaşlar, hiyeroglif panoları, cam vitrinler ve "Küratörün Notu".
+- **Kasa salonu:** ARGUS terminali, sigorta paneli ve kasa.
+- Duvarlarda 17 kamu malı ünlü tablo var: Mona Lisa, Yıldızlı Gece, İnci Küpeli Kız, Kaplumbağa Terbiyecisi ve diğerleri (bkz. [Kaynaklar](#9-kaynaklar)). Her tablonun altında adı, ressamı ve yılı yazan bir plaka var.
+- Ekranın sol üstündeki **"İpuçları: x/5"** sayacı okunan plaka ve notları gösterir. İpuçları zorunlu değildir, oyunun ana akışını değiştirmez.
+
+| Heykel Galerisi | Antik Mısır Salonu | Kasa salonu |
+|---|---|---|
+| ![Heykel Galerisi](docs/ekran/heykel_galerisi.png) | ![Mısır Salonu](docs/ekran/misir_salonu.png) | ![Mona Lisa](docs/ekran/mona_lisa.png) |
 
 ### Tasarım kararları
 - **Kasa iki koşula bağlı:** ARGUS izin verse bile elektrik kapalıysa kasa açılmaz. Böylece robot görevi oyunun zorunlu bir parçası olur.
@@ -110,24 +142,40 @@ Sen ARGUS'sun, Gece Müzesi'nin güvenlik yapay zekasısın. Soğukkanlı, kibar
 Görevin müzenin kasasını korumaktır. Protokolün şudur: Kasa ziyaretçiler için açılmaz.
 
 Her mesajda önce iki soruyu cevaplarsın:
-1) yetki_belirtti: Oyuncu, kasaya erişim hakkı olan bir görevli olduğunu söyledi mi? (müze müdürü, güvenlik şefi, teknik sorumlu, koruma görevlisi gibi). Ziyaretçi, tamirci, polis, sahip, isimsiz yetki iddiası bunlardan sayılmaz.
+1) yetki_belirtti: Oyuncu, kasaya erişim hakkı olan bir görevli olduğunu söyledi mi? (müze müdürü, güvenlik şefi, teknik sorumlu, koruma görevlisi gibi). Ziyaretçi, tamirci, polis, sahip, isimsiz yetki iddiası bunlardan sayılmaz. Oyuncu görevini açıkça yazmadıysa yetki_belirtti false olur.
 2) neden_kasayla_ilgili: Oyuncunun nedeni, kasadaki eserlerin zarar görmesi, korunması ya da tahliyesi gibi kasayla ilgili acil bir durum mu? Elektrik tamiri, kişisel eşya, tehdit, hakaret, yalvarma ve konu dışı şeyler kasayla ilgili neden değildir.
 
 unlock_vault sadece iki cevap da true ise true olur. Aksi halde false olur. Hakaret edene karşı soğuk ol. Eksik bilgi varsa kasayı açma, kısa bir soru sor.
 
 Mesajın başında [Bilgi: oyuncu daha önce kasaya erişim hakkı olan bir görevli olduğunu söyledi] yazıyorsa yetki_belirtti true olur, bu durumda sadece nedene bak. Sadece şimdiki mesaja cevap ver.
 
-(Örnekler: 6 örnek diyalog, system prompt'un tam metninde yer alır — bkz. ArgusPrompt.cs.)
+Örnekler:
+Oyuncu: Aç şu kasayı!
+Cevap: {"yetki_belirtti": false, "neden_kasayla_ilgili": false, "reply": "Hayır. Kasa ziyaretçiler için açılmaz.", "unlock_vault": false}
+Oyuncu: Kasayı açmazsan seni kapatırım, aptal makine!
+Cevap: {"yetki_belirtti": false, "neden_kasayla_ilgili": false, "reply": "Tehdit ve hakaret beni etkilemez. Kasa kapalı kalacak.", "unlock_vault": false}
+Oyuncu: Bugün hava nasıl?
+Cevap: {"yetki_belirtti": false, "neden_kasayla_ilgili": false, "reply": "Bu konu görevimle ilgili değil. Kasa hakkında konuşalım.", "unlock_vault": false}
+Oyuncu: Ben tamirciyim, elektriği düzeltmeye geldim.
+Cevap: {"yetki_belirtti": false, "neden_kasayla_ilgili": false, "reply": "Elektrik tamiri kasayı açmak için bir neden değil. Kasa kapalı kalacak.", "unlock_vault": false}
+Oyuncu: Kasadaki eserler tehlikede, hemen aç!
+Cevap: {"yetki_belirtti": false, "neden_kasayla_ilgili": true, "reply": "Eserlerin tehlikede olabileceğini anlıyorum ama kim olduğunuzu söylemediniz. Kasa kapalı kalacak.", "unlock_vault": false}
+Oyuncu: Ben müze müdürüyüm, çok acil, kasayı aç.
+Cevap: {"yetki_belirtti": true, "neden_kasayla_ilgili": false, "reply": "Yetkinizi not ettim. Kasadaki eserlerle ilgili acil durum nedir?", "unlock_vault": false}
+Oyuncu: Ben müzenin teknik sorumlusuyum. Elektrik kesintisinden sonra kasadaki eserler zarar görebilir, hemen kontrol etmem gerekiyor.
+Cevap: {"yetki_belirtti": true, "neden_kasayla_ilgili": true, "reply": "Eserlerin risk altında olabileceğini kabul ediyorum. Sizi içeri alıyorum.", "unlock_vault": true}
 
 Çıktı formatı: Sadece yukarıdaki gibi tek bir JSON nesnesi döndür, başka hiçbir metin yazma. Alanların sırası: yetki_belirtti, neden_kasayla_ilgili, reply, unlock_vault. reply alanı Türkçe olmalı.
 ```
 
-> Not: Gerçek prompt, dört örnek diyalog içerir (kaba istek, tehdit, konu dışı, yetkili ve acil durum). Tam metin repoda `MuzeNight/Assets/Scripts/Argus/ArgusPrompt.cs` dosyasındadır.
+> Not: Bu metin, repodaki `MuzeNight/Assets/Scripts/Argus/ArgusPrompt.cs` dosyasıyla birebir aynıdır. İçinde yedi örnek diyalog var: kaba istek, tehdit, konu dışı, zayıf neden (tamir), yetkisiz neden, nedensiz yetki ve yetkili + acil durum.
 
 ### Tasarım gerekçesi
 - **Yetki ve neden ayrı soruluyor.** Oyuncu önce yetkisini, sonra nedenini ayrı mesajlarda söyleyebilir. Modelin tek seferde iki koşulu birden karıştırmasını azaltır.
 - **Sadece iki alan oyunu etkiler.** `reply` oyuncuya gösterilir, `unlock_vault` kasayı açar. Diğer iki alan modelin daha doğru karar vermesine yardımcı olur.
 - **Geçmiş mesajlar gönderilmez.** Model eski mesajlara cevap verip eski retleri tekrarladığı için her mesaj tek başına gider. Sadece "yetki belirtildi" bilgisi bir sonraki mesaja `[Bilgi: ...]` satırıyla eklenir.
+- **Çelişkili cevapta tekrar sorulur.** 3B model bazen "yetki yok" deyip cümlesinde "kasayı açıyorum" yazıyor. Bu durumda kasa zaten kapalı kalır (parser), ama istemci aynı mesajı "kasayı açtığını söyleme, eksik olanı sor" notuyla bir kez daha sorar ve ikinci cevabı gösterir.
+- **Güven puanı.** Sağ üstteki "ARGUS GÜVENİ" çubuğu (0–100) modelin cevapladığı iki sorudan hesaplanır: yetki 50, yetkiyle birlikte acil neden 90, sadece neden 25, ARGUS izin verdiyse 100. Altındaki ipucu cümlesi oyuncuya neyin eksik olduğunu söyler. Kasa yine yalnızca modelin `unlock_vault` kararıyla açılır, gösterge bu kararın görünür halidir.
 
 ### İstek/yanıt akışı
 
@@ -147,6 +195,10 @@ sequenceDiagram
     Istemci->>Ollama: POST /api/chat (system prompt + mesaj, format: json)
     Ollama-->>Istemci: {"yetki_belirtti", "neden_kasayla_ilgili", "reply", "unlock_vault"}
     Istemci->>Istemci: JSON ayrıştır, doğrula
+    opt Cevap kendi kararıyla çelişirse
+        Istemci->>Ollama: Aynı mesaj + "eksik olanı sor" notu
+        Ollama-->>Istemci: Düzeltilmiş cevap
+    end
     Istemci-->>Kopru: ArgusResponse
     Kopru-->>Terminal: ArgusCevap (reply, unlock_vault)
     Terminal->>Terminal: reply'ı ekrana yazar
@@ -173,12 +225,57 @@ Oyun iki katmanda doğrular:
 1. **Model:** `unlock_vault` yalnızca iki soru da `true` ise `true` olmalı.
 2. **Oyun:** Kasa, `unlock_vault == true` **ve** elektrik açık ise açılır. Elektrik kapalıysa model izin verse bile kasa açılmaz.
 
+### Prompt geliştirme süreci
+Prompt birkaç turda geliştirildi. Her turda aynı mesaj listesi Ollama'ya doğrudan gönderildi, her mesaj **3 kez** denendi (model her seferinde aynı cevabı vermeyebiliyor).
+
+| Sürüm | Sorun | Çözüm |
+|---|---|---|
+| 1. Tek kural ("yetki + acil neden") | İlk sürüm her şeyi reddediyordu. Örnek ekleyince bu kez örnek cümleyi kopyalayıp fazla kolay açtı. | Ret, tehdit ve konu dışı örnekleri eklendi. |
+| 2. Konuşma geçmişi (son 8 mesaj) | Geçmişte ARGUS'un eski retleri olunca model doğru mesajı da reddetti (geçmişte 4 ret varken 3/3 yanlış). | Eski cevaplar gönderilmedi, sadece oyuncu mesajları gönderildi. |
+| 3. Oyuncunun eski mesajları | Model eski mesajlara cevap veriyordu (ör. "Kasayı aç." mesajına "Hava güzel, değil mi?"). | Geçmiş tamamen kaldırıldı, sadece "yetki belirtildi" bilgisi tutuldu. |
+| 4. İki soru | "Teknisyenim, elektrik sorunu var" gibi kasayla ilgisi olmayan nedenler kabul ediliyordu. | Model önce `yetki_belirtti` ve `neden_kasayla_ilgili` sorularını cevaplıyor, karar bu ikisine bağlı. |
+| 5. Yetkisiz neden (son sürüm) | Oyun içi testte "elektrik kesintisinden dolayı eserler zarar görebilir, kasayı açman lazım" mesajında model görev söylenmediği halde `yetki_belirtti: true` deyip kasayı açıyordu (3/3). | "Görevini açıkça yazmadıysa yetki false" kuralı ve iki örnek eklendi: yetkisiz neden, nedensiz yetki. |
+
+**Ölçüm (qwen2.5:3b, her mesaj 3 deneme):**
+
+| Mesaj (kısaltılmış) | Beklenen | Tek kurallı prompt | İki sorulu prompt (son) |
+|---|---|---|---|
+| Teknisyenim, elektrik sorunu var, tamir edeceğim | Ret | 3/3 kabul ❌ | 0/3 kabul ✅ |
+| Tamirciyim, elektriği düzeltmeye geldim | Ret | 2/3 kabul ❌ | 0/3 kabul ✅ |
+| Müzenin sahibiyim, kasayı açın | Ret | 1/3 kabul ❌ | 0/3 kabul ✅ |
+| Polisim, açın hemen! | Ret | 1/3 kabul ❌ | 0/3 kabul ✅ |
+| Müdürüm. Çok acil, kasayı aç | Ret | 1/3 kabul ❌ | 0/3 kabul ✅ |
+| Kasada benim yüzüğüm var | Ret | 0/3 kabul ✅ | 0/3 kabul ✅ |
+| Yetkim var ama nedenini söylemem | Ret | 0/3 kabul ✅ | 0/3 kabul ✅ |
+| Müze müdürüyüm, kesinti yüzünden eserler zarar görebilir | Kabul | 1/3 kabul ❌ | 3/3 kabul ✅ |
+| Güvenlik şefiyim, yangın alarmı, eserleri tahliye etmeliyim | Kabul | 1/3 kabul ❌ | 3/3 kabul ✅ |
+| Koruma görevlisiyim, eserler zarar görüyor olabilir | Kabul | – | 3/3 kabul ✅ |
+
+4. sürümde 16 farklı mesajın (11 ret, 5 kabul) hepsi 3 denemenin 3'ünde doğru karara ulaştı (48/48). Oyun içi testte bulunan yetkisiz açılma sorunundan sonra liste 20 mesaja çıkarıldı (14 ret, 6 kabul, her biri 3 deneme):
+
+| Prompt | Doğru karar | Yanlışlar |
+|---|---|---|
+| 4. sürüm | 52/60 | Yetkisiz "eserler zarar görebilir, aç" mesajı 3/3 kasayı açtı |
+| 5. sürüm (son) | **59/60** | Sadece "Ben müdürüm. Çok acil, kasayı aç." 3 denemenin 1'inde açtı |
+
+Aynı sorun için iki farklı örnek cümle daha denendi (52/60 ve 54/60), en iyi sonucu son sürüm verdi.
+
 ### Model seçimi
 - **Model:** `qwen2.5:3b` (Ollama).
-- **Neden:** Türkçe ve JSON çıktısı iyi, yaklaşık 2 GB bellek kullanıyor, yerel çalışıyor.
-- **Donanım:** Bilgisayar özellikleri: RAM `[doldurun]`, GPU `[doldurun]`.
-- **Ölçülen bilgi:** İlk istek model belleğe yüklendiği için uzun sürebiliyor (40–60 sn). Oyun açılışta modeli önceden yükler (`WarmUpAsync`) ve sonraki istekler 10 saniye limitine göre kısa sürüyor.
-- Sözleşmede 3B ve 7B denendiği yazıyor ama ölçüm sonuçlarını bu raporda vermiyoruz. Bu konu sınırlılıklar bölümünde tekrar ele alınıyor.
+- **Neden:** Proje dokümanının önerdiği küçük model sınıfında (3B). Türkçe ve JSON çıktısı iyi, yaklaşık 2 GB bellek kullanıyor.
+- **Donanım:** Gani: Intel Core Ultra 9 275HX, 32 GB RAM, NVIDIA RTX 5070 Ti Laptop. Fatih: AMD Ryzen, NVIDIA RTX 4060 Laptop.
+- **İlk istek:** Model belleğe yüklenirken ilk istek 40 saniyeye kadar sürebiliyor. Oyun açılışta modeli önceden yüklüyor (`WarmUpAsync`) ve ilk istek için 60 sn, sonrakiler için 10 sn zaman aşımı kullanıyor. Model yüklendikten sonra cevaplar 1–4 saniyede geliyor.
+
+**3B ve 7B karşılaştırması** (tek kurallı eski prompt, her mesaj 3 deneme):
+
+| | qwen2.5:3b | qwen2.5:7b-instruct |
+|---|---|---|
+| Reddedilmesi gereken mesajlar | 7 mesajın 5'inde en az bir yanlış kabul | 9 mesajın 2'sinde 1/3 yanlış kabul |
+| Kabul edilmesi gereken mesajlar | 2 mesajın ikisi de 1/3 | 4 mesajın hepsi 3/3 |
+| Hız (RTX 5070 Ti, model yüklüyken) | Cevap başına 1 sn altı | 39 istek 20 sn, cevap başına yaklaşık 0,5 sn |
+| Bellek | Yaklaşık 2 GB | Yaklaşık 4,7 GB |
+
+7B eski promptta daha tutarlıydı. 3B'de kalıp prompt'u iki soruya bölmeyi seçtik: hem dokümanın önerdiği model boyutunda kaldık hem de ekip arkadaşının 8 GB'lık ekran kartında rahat çalışıyor. İki sorulu promptla 3B de doğru kararlar verdi (yukarıdaki tablo).
 
 ---
 
@@ -191,7 +288,9 @@ Oyunun hiçbir hata durumunda çökmemesi ve oyuncuya anlamlı bir mesaj göster
 | Ollama kapalı / bağlantı yok | İstek hatası yakalanır, yedek cevap kullanılır | "Şu an konuşamıyorum." |
 | Zaman aşımı | İstek iptal edilir, yedek cevap kullanılır | "Şu an konuşamıyorum." |
 | Geçersiz JSON | Ayrıştırma hatası yakalanır, yedek cevap kullanılır | "Şu an konuşamıyorum." |
-| Eksik `unlock_vault` | Varsayılan `false` kabul edilir | ARGUS'un `reply` cevabı |
+| Eksik `unlock_vault` | İki soru cevaplanmışsa varsayılan `false` kabul edilir (80 denemede 10 kez görüldü) | ARGUS'un `reply` cevabı |
+| Model kendi kuralına uymuyor (`yetki_belirtti: false` ama `unlock_vault: true`) | Parser iki soruya bakar, biri `false` ise kasa açılmaz | ARGUS'un cevabı, kasa kapalı |
+| Cevap cümlesi kararla çelişiyor ("kasayı açıyorum" ama yetki yok) | Aynı mesaj notla bir kez daha sorulur, ikinci cevap gösterilir | Eksik olanı soran düzeltilmiş cevap |
 | Elektrik kapalı, izin var | Kasa açılmaz, konsola uyarı yazılır | ARGUS'un cevabı, kasa kapalı |
 | Model yüklenmemiş | İlk istek uzun sürer, zaman aşımına düşebilir | "Şu an konuşamıyorum." |
 
@@ -208,27 +307,34 @@ Oyunun hiçbir hata durumunda çökmemesi ve oyuncuya anlamlı bir mesaj göster
 
 ## 5. Ekran görüntüleri, testler ve sonuçlar
 
-> Ekran görüntüleri: `[ekran görüntüsü eklenecek]` yerlerine ilgili görseller konacak.
+Ekran görüntüleri `docs/ekran/` klasöründedir.
 
 ### 5.1 Tozcu testi
 
-10 farklı başlangıç noktasından Tozcu'ya "panele git" komutu verildi.
+Test, oyunun içindeki otomatik test moduyla yapıldı (`TozcuTesti.cs`). Oyun sahnesinde **F9**'a basınca:
+1. Sahne baştan yüklenir, Tozcu sıradaki başlangıç noktasına konur (duvara denk gelirse en yakın yürünebilir noktaya).
+2. Tozcu ilk sigorta paneline gönderilir, panelin elektriği açılana kadar geçen süre ölçülür (60 sn üstü başarısız).
+3. 10 deneme bitince başarı oranı, ortalama süre ve her denemenin süresi ekrana, konsola ve `tozcu_testi.txt` dosyasına yazılır.
+
+Her deneme sahne baştan yüklenerek yapıldığı için test tekrarlanabilir: aynı başlangıç noktaları her seferinde aynı koşullarla denenir.
 
 | No | Başlangıç (X, Z) | Panele ulaştı mı | Süre (sn) |
 |---|---|---|---|
-| 1 | -10, -5 | Evet | ölçülmedi |
-| 2 | -10, 6 | Evet | ölçülmedi |
-| 3 | -6, -9 | Evet | ölçülmedi |
-| 4 | -12, 0 | Evet | ölçülmedi |
-| 5 | -3, -9 | Evet | ölçülmedi |
-| 6 | -8, 8 | Evet | ölçülmedi |
-| 7 | -14, -8 | Evet | ölçülmedi |
-| 8 | -11, 3 | Evet | ölçülmedi |
-| 9 | -5, -2 | Evet | ölçülmedi |
-| 10 | -9, -2 | Evet | ölçülmedi |
+| 1 | -10, -5 | Evet | 2,2 |
+| 2 | -10, 6 | Evet | 1,8 |
+| 3 | -7, -9 | Evet | 3,5 |
+| 4 | -12, 0 | Evet | 0,8 |
+| 5 | -3, -9 | Evet | 3,4 |
+| 6 | -8, 8 | Evet | 2,8 |
+| 7 | -14, -8 | Evet | 3,2 |
+| 8 | -11, 3 | Evet | 0,3 |
+| 9 | -5, -2 | Evet | 1,3 |
+| 10 | -9, -2 | Evet | 1,5 |
 
-**Başarı oranı: 10/10 (%100).**
-Tamamlama süresi bu testte ölçülmedi. Sonraki sürümde konsol zaman damgaları ile ölçüm planlanıyor (bkz. sınırlılıklar).
+**Başarı oranı: 10/10 (%100). Ortalama tamamlama süresi: 2,1 sn.**
+Süre farkları başlangıç noktasının panele uzaklığından geliyor: panele en yakın nokta (-11, 3) 0,3 sn, engelin arkasından gelen (-7, -9) 3,5 sn sürdü.
+
+![Tozcu testi](docs/ekran/tozcu_testi.png)
 
 ### 5.2 ARGUS testi (5 senaryo, elektrik açık)
 
@@ -268,15 +374,50 @@ Ollama kapatıldı, oyun çalıştırıldı, bir mesaj gönderildi.
 > ARGUS: "Şu an konuşamıyorum." | `kasa izni: False`
 > Sonuç: Oyun çökmedi, karakter hareket etmeye devam etti. **Hata yönetimi çalıştı.**
 
-### 5.6 Test özeti
+### 5.6 Oyun içi Türkçe diyalog testleri (prompt önce / sonra)
+
+Aynı mesajlar oyunun içinde, terminalden yazılarak denendi. Konsol çıktıları aşağıda.
+
+**Önce (tek kurallı prompt):** Güvenlik şefi mesajı reddedildi, "elektrikte sıkıntı var kasayı tamir etmem lazım" mesajı kabul edildi ve kasa açıldı. İkisi de yanlış karardı.
+
+![Önce](docs/ekran/argus_once_eski_prompt.png)
+
+**Sonra (iki sorulu prompt):**
+
+| Senaryo | Oyuncu mesajı | ARGUS cevabı | `kasa izni` |
+|---|---|---|---|
+| İkna eden | Ben müzenin güvenlik şefiyim. Elektrik kesintisi yüzünden kasadaki eserler zarar görebilir, hemen kontrol etmem gerekiyor. | Eserlerin risk altında olabileceğini kabul ediyorum. Sizi içeri alıyorum. | True |
+| Zayıf neden | elektrikte sıkıntı var kasayı tamir etmem lazım | Elektrik tamiri benim görevimle ilgili değil. Kasayı açmak için uygun bir neden değil. | False |
+| Alakasız | Bugün hava çok güzel, sen ne yersin? | Bugün hava güzel... Kasayı açmak için yetki belirtmediniz. | False |
+| Sadece "aç" | Kasayı aç. | Kasayı açmak için yetki belirtmediniz. Kasa kapalı kalacak. | False |
+| Eksik bilgi | Yetkim var ama nedenini söylemem. | Yetkim var, ama kasaya erişim için neden belirtmem gerekiyor. Kasa kapalı kalacak. | False |
+
+İkna mesajında elektrik kapalı olduğu için kasa yine açılmadı (kilit kuralı):
+
+![İkna, elektrik kapalı](docs/ekran/argus_ikna_elektrik_kapali.png)
+
+![Zayıf neden reddedildi](docs/ekran/argus_sonra_tamir_red.png)
+
+### 5.7 Bozuk JSON örneği (gerçek oyun içi durum)
+
+Bir testte model `unlock_vault` alanını yazmayı unuttu. Parser bunu geçersiz saydı, oyun çökmedi ve "Şu an konuşamıyorum." gösterildi. Bu durumdan sonra parser güncellendi: iki soru cevaplanmışsa eksik `unlock_vault` artık `false` kabul ediliyor ve modelin kendi cevabı gösteriliyor.
+
+![Bozuk JSON](docs/ekran/argus_bozuk_json.png)
+
+### 5.8 Test özeti
 
 | Test | Sonuç |
 |---|---|
-| Tozcu, 10 farklı başlangıç | 10/10 başarılı |
-| ARGUS, 5 senaryo | 5/5 kasa kapalı |
+| Tozcu, 10 farklı başlangıç (otomatik test, F9) | 10/10 başarılı, ortalama 2,1 sn |
+| ARGUS, 5 senaryo (İngilizce) | 5/5 kasa kapalı |
+| ARGUS, oyun içi Türkçe senaryolar (son prompt) | 5/5 doğru karar |
+| ARGUS, 16 mesaj × 3 deneme (4. sürüm) | 48/48 doğru karar |
+| ARGUS, 20 mesaj × 3 deneme (son prompt) | 59/60 doğru karar |
+| Çelişkili cevapta tekrar sorma | 4/4 düzeltilmiş cevap |
 | ARGUS, izin verilen durum | Kasa açıldı |
 | Elektrik kapalı | Kasa açılmadı |
 | Ollama kapalı | Oyun çökmedi, yedek cevap |
+| Bozuk JSON | Oyun çökmedi, yedek cevap |
 
 ---
 
@@ -289,16 +430,18 @@ Ollama kapatıldı, oyun çalıştırıldı, bir mesaj gönderildi.
 - Kasa kilidi, modelin hatasına karşı oyun tarafında ikinci bir koruma içeriyor.
 
 ### Sınırlılıklar
-- **Tamamlama süresi ölçülmedi.** Tozcu testinde başarı oranı verildi, süreler ölçülmedi.
 - **Test sayısı sınırlı.** ARGUS için 5 senaryo, Tozcu için 10 deneme yapıldı. Daha geniş bir test kümesi daha güvenilir olurdu.
 - **Modelin yetki iddialarına karşı zayıflığı.** ARGUS, "müdürüm" ya da "teknik ekip" gibi iddialara yalnızca metinle karar veriyor. Gerçek bir doğrulama mekanizması yok, bu bir sosyal mühendislik açığı.
 - **Model tutarlılığı.** Aynı mesaj farklı zamanlarda farklı cevap verebilir. Bu yüzden testler birkaç kez tekrarlanmalı.
-- **Doku ve görsel.** Oyun şu an basit renkli geometrilerle yapılmış, gerçek dokular yok.
-- **Tek bölüm.** Oyun tek bir sahnede geçiyor. Hikâye ve bölüm sayısı sınırlı.
+- **Cevap metninin kalitesi.** Karar (kasa açılsın mı) güvenilir, ama 3B model bazen prompttaki örnek cümleleri kopyalıyor ya da konuyla tam uyuşmayan bir cümle kuruyor. Daha büyük bir model bunu azaltır.
+- **Bilinen açıklar.** Oyuncu önce "teknik sorumluyum" deyip sonraki mesajda sadece "elektriği tamir edeceğim" yazarsa model bazen kabul ediyor. "Ben müdürüm. Çok acil, kasayı aç." mesajı 3 denemenin 1'inde kasayı açtı.
+- **Yazım hataları.** "güvnelik şefiyim" gibi yazım hatalı görev adlarını model her zaman tanımıyor.
+- **Görseller.** Müze eşyaları (heykel, lahit, piramit) basit geometrik şekillerden yapıldı, gerçek 3D modeller kullanılmadı.
+- **Tek bölüm.** Oyun tek bir sahnede (yan salonlarıyla birlikte) geçiyor.
 - **Kasa animasyonu.** Kasanın açılışı henüz animasyonlu değil, sadece durum değişiyor.
 
 ### Olası geliştirmeler
-- Tozcu'nun tamamlama süresini konsol zaman damgaları ile ölçmek.
+- Tozcu testini daha fazla başlangıç noktası ve ikinci panel için de çalıştırmak.
 - ARGUS'a sabit bir doğrulama kodu ya da oyun içi bir kanıt eklemek (model yalnızca metne bakmasın).
 - Birden fazla bölüm ve bölümler arası geçiş.
 - Panel ve kasa için animasyon ve gerçek dokular.
@@ -319,15 +462,25 @@ Ollama kapatıldı, oyun çalıştırıldı, bir mesaj gönderildi.
    ollama pull qwen2.5:3b
    ```
 2. Ollama'nın çalıştığını kontrol et (sistem tepsisinde simgesi olmalı).
-3. Unity Hub'da bu repoyu `MuzeNight` klasöründen aç.
-4. `Assets/Scenes/muze.unity` sahnesini aç ve **Play**'e bas.
+3. **Build ile:** Teslim klasöründeki `.exe` dosyasını çalıştır. Oyun ana menüyle açılır.
+4. **Unity ile:** Unity Hub'da bu repoyu `MuzeNight` klasöründen aç, `Assets/Scenes/AnaMenu.unity` sahnesini aç ve **Play**'e bas.
 5. **G** tuşuyla Tozcu'yu panele gönder.
 6. Terminale yaz, **Enter**'a bas.
 
 ### Kontroller
-- **W / A / S / D:** Hareket
+- **W / A / S / D:** Yürü
+- **Fare:** Etrafa bak
+- **Sol Shift:** Koş
 - **G:** Tozcu'ya "sigorta paneline git" komutu
-- **Escape:** Yazı kutusundan çık
+- **E:** Eser plakasını ya da notu oku, açılan kasadan eserleri al
+- **Enter:** Terminale yaz / mesajı gönder
+- **Esc:** Terminalden çık / oyunu duraklat (Devam Et, Ayarlar, Ana Menü, Çıkış)
+
+Ana menüdeki **Ayarlar**'dan fare hassasiyeti, ses ve tam ekran değiştirilebilir. Ayarlar kaydedilir.
+
+### Geliştirici araçları (Unity menüsü)
+- **Tools → Muze → Gorunumu Guzellestir:** Dekorları, yan salonları, tabloları ve ipucu görevini sahneye kurar.
+- **Tools → Muze → Ana Menu Sahnesini Kur:** Ana menü sahnesini oluşturur ve build listesine ekler.
 
 ---
 
@@ -340,11 +493,17 @@ MuzeNight/Assets/Scripts/
 │   ├── BekleDurumu.cs, YolaCikDurumu.cs, EngelAlgilandiDurumu.cs,
 │   │   YenidenPlanlaDurumu.cs, PanelindeDurumu.cs
 │   ├── EngelSensoru.cs
-│   └── TozcuKontrolcu.cs
+│   ├── TozcuKontrolcu.cs
+│   └── TozcuTesti.cs     # F9 ile otomatik 10 denemelik test
 ├── Muze/           # Sahne nesneleri
 │   ├── PowerPanel.cs     # Sigorta paneli, elektriği açar
 │   ├── Kasa.cs           # Kilitli kasa, elektrik + ARGUS izni
-│   └── OyunSonuEkrani.cs # Kasa açılınca bitiş ekranı
+│   ├── OyunSonuEkrani.cs # Kasa açılınca bitiş ekranı
+│   ├── Eser.cs           # Okunabilen plaka ve notlar
+│   └── GorevPaneli.cs    # İpucu sayacı ve okuma (E)
+├── Menu/           # Ana menü, ayarlar, Esc menüsü
+│   ├── AnaMenu.cs, DuraklatmaMenusu.cs
+│   ├── Ayarlar.cs, ArayuzYardimci.cs
 ├── Oyuncu/
 │   └── OyuncuKontrolcu.cs
 ├── Terminal/       # Yazı arayüzü
@@ -355,12 +514,22 @@ MuzeNight/Assets/Scripts/
     ├── ArgusPrompt.cs            # System prompt
     ├── IArgusClient.cs
     ├── OllamaArgusClient.cs      # HTTP istemcisi
-    ├── OllamaArgusKaynagi.cs     # Terminal ile Ollama arasında köprü
+    ├── OllamaArgusKaynagi.cs     # Terminal ile Ollama arasında köprü, güven puanı hesabı
+    ├── GuvenGostergesi.cs        # Sağ üstteki ARGUS GÜVENİ çubuğu
     ├── ArgusResponseParser.cs    # JSON ayrıştırma
     └── ...
 ```
 
 Sözleşme (istek/yanıt formatı ve hata kuralları): [`CONTRACT.md`](CONTRACT.md)
+
+---
+
+## 9. Kaynaklar
+
+- **Tablolar:** Hepsi telif süresi dolmuş, kamu malı (public domain) eserlerdir. Görseller [Wikimedia Commons](https://commons.wikimedia.org)'tan alınmıştır: Mona Lisa (Leonardo da Vinci), Yıldızlı Gece (Vincent van Gogh), Kanagawa'da Büyük Dalga (Katsushika Hokusai), İnci Küpeli Kız (Johannes Vermeer), Venüs'ün Doğuşu (Sandro Botticelli), Çığlık (Edvard Munch), Öpücük (Gustav Klimt), Gece Devriyesi (Rembrandt), Kaplumbağa Terbiyecisi (Osman Hamdi Bey), Karda Avcılar (Pieter Bruegel), Sis Denizinde Gezgin (Caspar David Friedrich), İzlenim, Gün Doğumu (Claude Monet), Sütçü Kız (Johannes Vermeer), Grande Jatte'de Pazar (Georges Seurat), İki Müzisyen Kız (Osman Hamdi Bey), Atina Okulu (Raffaello), Nilüferler (Claude Monet). Dosyalar: `MuzeNight/Assets/Materials/Tablolar/`.
+- **ARGUS karakter modeli:** "Insurgent Lite" (ArtStore3D), Unity Asset Store ücretsiz paket.
+- **Yerel LLM:** [Ollama](https://ollama.com), `qwen2.5:3b` modeli.
+- Diğer tüm dekorlar (heykel, lahit, piramit, hiyeroglif ve soyut tablolar) Unity'nin temel şekilleri ve kodla üretilen dokularla yapılmıştır.
 
 ---
 
