@@ -279,17 +279,7 @@ Aynı sorun için üç farklı örnek/kural birleşimi daha denendi (52/60, 53/6
 - **Neden:** Proje dokümanının önerdiği küçük model sınıfında (3B). Türkçe ve JSON çıktısı iyi, yaklaşık 2 GB bellek kullanıyor.
 - **Donanım:** Gani: Intel Core Ultra 9 275HX, 32 GB RAM, NVIDIA RTX 5070 Ti Laptop. Fatih: AMD Ryzen, NVIDIA RTX 4060 Laptop.
 - **İlk istek:** Model belleğe yüklenirken ilk istek 40 saniyeye kadar sürebiliyor. Oyun açılışta modeli önceden yüklüyor (`WarmUpAsync`) ve ilk istek için 60 sn, sonrakiler için 10 sn zaman aşımı kullanıyor. Model yüklendikten sonra cevaplar 1–4 saniyede geliyor.
-
-**3B ve 7B karşılaştırması** (tek kurallı eski prompt, her mesaj 3 deneme):
-
-| | qwen2.5:3b | qwen2.5:7b-instruct |
-|---|---|---|
-| Reddedilmesi gereken mesajlar | 7 mesajın 5'inde en az bir yanlış kabul | 9 mesajın 2'sinde 1/3 yanlış kabul |
-| Kabul edilmesi gereken mesajlar | 2 mesajın ikisi de 1/3 | 4 mesajın hepsi 3/3 |
-| Hız (RTX 5070 Ti, model yüklüyken) | Cevap başına 1 sn altı | 39 istek 20 sn, cevap başına yaklaşık 0,5 sn |
-| Bellek | Yaklaşık 2 GB | Yaklaşık 4,7 GB |
-
-7B eski promptta daha tutarlıydı. 3B'de kalıp prompt'u iki soruya bölmeyi seçtik: hem dokümanın önerdiği model boyutunda kaldık hem de ekip arkadaşının 8 GB'lık ekran kartında rahat çalışıyor. İki sorulu promptla 3B de doğru kararlar verdi (yukarıdaki tablo).
+- **Küçük modelle doğruluk:** Küçük model tek seferde karmaşık bir kararı vermekte zorlandı. Bu yüzden kararı iki basit soruya böldük ve prompt'u ölçerek geliştirdik (yukarıdaki tablolar). Böylece hem dokümanın önerdiği model boyutunda kaldık hem de ekip arkadaşının 8 GB'lık ekran kartında rahat çalışıyor.
 
 ---
 
