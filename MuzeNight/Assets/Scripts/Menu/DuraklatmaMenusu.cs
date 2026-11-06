@@ -3,7 +3,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 // Oyun sahnesinde Esc ile acilan duraklatma menusu ve ekranin ortasindaki nisangah.
-// Oyun sahnesi yuklenince kendini otomatik olusturur, sahneye elle eklemeye gerek yok.
 public class DuraklatmaMenusu : MonoBehaviour
 {
     private const string OyunSahnesi = "muze";

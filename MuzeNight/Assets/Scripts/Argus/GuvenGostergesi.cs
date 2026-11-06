@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Sag ustte ARGUS'un oyuncuya ne kadar guvendigini gosteren cubuk (0-100).
-// Puan, modelin JSON cevabindaki yetki_belirtti, neden_kasayla_ilgili ve unlock_vault
-// alanlarindan hesaplanir (OllamaArgusKaynagi). 100 olunca ARGUS kasayi acmaya izin vermistir.
 public class GuvenGostergesi : MonoBehaviour
 {
     private GameObject panel;

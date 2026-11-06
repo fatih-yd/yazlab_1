@@ -4,9 +4,6 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // Tools → Muze → Hareketli Bariyerleri Kur menusu.
-// Ortadaki Engel duvarinin kuzeyindeki ve guneyindeki bosluklara, sirayla acilip kapanan
-// iki bariyer kurar. Biri kapaliyken digeri acik oldugu icin yol hicbir zaman tamamen kapanmaz.
-// Ctrl+Z ile geri alinabilir, tekrar calistirilirsa var olanlari cogaltmaz.
 public static class MuzeBariyerKurulum
 {
     private const string MateryalYolu = "Assets/Materials/BariyerUyari.mat";
@@ -66,7 +63,6 @@ public static class MuzeBariyerKurulum
         bariyer.GetComponent<Renderer>().sharedMaterial = materyal;
 
         // Diger duvarlar gibi: NavMesh'e bake edilmez, carve ile engel olur.
-        // Hareket ederken de carve guncellensin ki Tozcu hemen tepki versin.
         GameObjectUtility.SetStaticEditorFlags(bariyer, 0);
         NavMeshObstacle navEngeli = bariyer.AddComponent<NavMeshObstacle>();
         navEngeli.shape = NavMeshObstacleShape.Box;

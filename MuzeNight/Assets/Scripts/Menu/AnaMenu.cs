@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // Oyunun giris ekrani: Oyuna Basla, Ayarlar, Kontroller, Cikis.
-// Arayuzu kendisi kodla kurar, sahnede sadece kamera, EventSystem ve bu bilesen olur.
 public class AnaMenu : MonoBehaviour
 {
     [SerializeField] private string oyunSahnesi = "muze";

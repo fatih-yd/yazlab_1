@@ -3,13 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// "Gorunumu Guzellestir" menusunun parcasi. Kuzey ve guney dis duvarlarina kapi acar,
-// arkalarina gezilebilir iki salon kurar:
-//   - Heykel Galerisi (baslangic odasinin kuzeyi): bustler, heykel, banklar, tablolar
-//   - Antik Misir Salonu (kasa salonunun guneyi): lahit, piramitler, dikilitaslar, vitrinler
-// Her salonda okunabilen bir hikaye notu var (Eser bileseni, E ile okunur).
-// Duvarlar ve zeminler carpistiricili (oyuncu iceri girip duvarlardan gecemesin),
-// dekor parcalari carpistiricisiz.
+// "Gorunumu Guzellestir" menusunun parcasi: duvarlara kapi acar, iki yan salon kurar.
 public static class MuzeYanSalonlar
 {
     public static void Kur(Transform ana)
@@ -51,13 +45,11 @@ public static class MuzeYanSalonlar
         Duvar(ana, "Kapi_Guney_Ust", new Vector3(6f, 2.7f, -10.25f), new Vector3(2.2f, 0.6f, 0.5f), duvar);
 
         // Kapilarin ustunde salon adlari (ana salondan bakana donuk)
-        // Kapi tabelalari sutunlarin onunde ve kapi genisligine sigacak boyda
         MuzeGorunum.Tabela(ana, "HEYKEL GALERİSİ", new Vector3(-10.5f, 2.7f, 9.6f), 0f, 1.5f);
         MuzeGorunum.Tabela(ana, "ANTİK MISIR SALONU", new Vector3(6f, 2.7f, -9.6f), 180f, 1.3f);
     }
 
     // ---------------------------------------------------------------- Heykel Galerisi
-    // Ic alan: x -15..-6, z 10.5..17
     private static void HeykelGalerisi(Transform ana, Material duvar, Material zemin)
     {
         Transform g = AltNesne(ana, "HeykelGalerisi");
@@ -104,7 +96,6 @@ public static class MuzeYanSalonlar
     }
 
     // ---------------------------------------------------------------- Antik Misir Salonu
-    // Ic alan: x 1..11, z -17..-10.5
     private static void MisirSalonu(Transform ana, Material duvar)
     {
         Transform g = AltNesne(ana, "MisirSalonu");

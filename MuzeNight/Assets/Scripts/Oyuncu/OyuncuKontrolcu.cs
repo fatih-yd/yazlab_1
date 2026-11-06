@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Birinci sahis oyuncu. Fareyle serbestce bakar, WASD ile yurur, G ile Tozcu'ya komut verir.
-// Oynarken imlec kilitli ve gizlidir; terminal acikken imlec serbest kalir ve bakis durur.
 [RequireComponent(typeof(CharacterController))]
 public class OyuncuKontrolcu : MonoBehaviour
 {

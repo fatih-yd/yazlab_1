@@ -5,8 +5,6 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // Tools → Muze → Duvarlari ve Zemini Hazirla menusu.
-// Koyu tas karo dokusu uretir, zemini ve tum duvarlari bu dokuyla kaplar
-// ve alanin dort kenarina cevre duvarlari ekler. Ctrl+Z ile geri alinabilir.
 public static class MuzeDuvarlari
 {
     private const string DokuYolu = "Assets/Materials/KoyuDoku.png";

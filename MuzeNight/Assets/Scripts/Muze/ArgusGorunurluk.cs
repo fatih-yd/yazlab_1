@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 
 // ARGUS terminali ve arayuzu, tetikleyici panelin elektrigi acilana kadar gizli kalir.
-// Tozcu ikinci paneli acinca ARGUS belirir ve oyuncu onunla konusabilir.
 public class ArgusGorunurluk : MonoBehaviour
 {
     [SerializeField] private PowerPanel tetikleyiciPanel;

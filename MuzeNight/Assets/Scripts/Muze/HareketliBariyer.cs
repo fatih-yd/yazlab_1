@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // Belirli araliklarla yerden yukselip alcalan bariyer.
-// Kapaliyken NavMesh'te engel olur (carve), acikken engel kalkar.
-// Tozcu yolunu bariyerin o anki durumuna gore kendisi yeniden bulur.
 public class HareketliBariyer : MonoBehaviour
 {
     [SerializeField] private bool kapaliBasla = true;

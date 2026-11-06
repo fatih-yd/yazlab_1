@@ -8,9 +8,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 // Tekrarlanabilir Tozcu testi. Oyun sahnesinde F9'a basinca baslar.
-// Her denemede sahne bastan yuklenir, Tozcu siradaki baslangic noktasina konur ve ilk sigorta
-// paneline gonderilir. Panelin elektrigi acilana kadar gecen sure olculur (60 sn ustu basarisiz).
-// 10 deneme bitince basari orani ve ortalama sure ekrana, konsola ve tozcu_testi.txt dosyasina yazilir.
 public class TozcuTesti : MonoBehaviour
 {
     private const string OyunSahnesi = "muze";

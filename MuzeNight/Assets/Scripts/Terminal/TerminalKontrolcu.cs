@@ -6,8 +6,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Oyuncunun ARGUS ile yazistigi terminal.
-// ARGUS belirince modelden bir karsilama ister; sonra Enter ile gonderilen mesajlarin cevabini
-// daktilo efektiyle yazar ve kasa kararini uygular.
 public class TerminalKontrolcu : MonoBehaviour
 {
     // Karsilama cumlesi sabit degil: modele durum anlatilir, selami ve soruyu model kendisi uretir
@@ -154,7 +152,6 @@ public class TerminalKontrolcu : MonoBehaviour
     }
 
     // Metindeki < > isaretleri bicim etiketi sanilmasin diye benzer isaretlerle degistirilir.
-    // (Onceden noparse kullaniliyordu ama TextMeshPro noparse icindeki metni alt satira kaydirmiyor.)
     private static string Temizle(string metin)
     {
         return metin.Replace("<", "‹").Replace(">", "›");

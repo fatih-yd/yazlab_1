@@ -6,9 +6,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Tools → Muze → Diyalog Arayuzunu Kur menusu.
-// ARGUS konusmasi icin ekranin altinda siyah temali bir diyalog kutusu kurar:
-// yari saydam siyah zemin, amber baslik, cevap metni ve koyu yazi kutusu.
-// Mevcut cikti ve InputField objelerini kullanir, terminal kodu degismeden calisir. Ctrl+Z ile geri alinabilir.
 public static class MuzeArayuzKurulum
 {
     private static readonly Color Amber = new Color(0.95f, 0.62f, 0.12f);

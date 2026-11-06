@@ -3,8 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Kasa acilinca oyunu bitirir: oyuncu ve terminal hemen kilitlenir,
-// sonuc paneli kapi animasyonu izlensin diye kisa bir gecikmeyle acilir.
+// Kasa acilinca E ile eserler alinir ve oyun biter.
 public class OyunSonuEkrani : MonoBehaviour
 {
     [SerializeField] private Kasa kasa;
@@ -53,8 +52,7 @@ public class OyunSonuEkrani : MonoBehaviour
         }
     }
 
-    // Kasa acilinca oyun hemen bitmez: kapi acilir, iceriden altin bir isik yayilir,
-    // oyuncu kasanin yanina gidip E'ye basinca oyun biter.
+    // Kasa acilinca kapi acilir, iceriden altin isik yayilir.
     private void KasaAcildiginda()
     {
         kasaAcik = true;

@@ -1,7 +1,6 @@
 using UnityEngine;
 
-// Kaidenin ustundeki toplanabilir eser. Oyuncu yaklasip E'ye basinca plakasi okunur
-// ve eser kaldirilir. Plakadaki ipucu gorev panelinde gosterilir.
+// Kaidenin ustundeki eser. E ile plakasi okunur.
 public class Eser : MonoBehaviour
 {
     [SerializeField] private string eserAdi = "Eser";

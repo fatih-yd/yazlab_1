@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // Elektrik acilinca yukari kayarak acilan gecit kapisi.
-// Acildiginda hem carpisma hem NavMesh engeli kalkar, ajan ve oyuncu gecebilir.
 public class GecitKapisi : MonoBehaviour
 {
     [SerializeField] private PowerPanel tetikleyiciPanel;

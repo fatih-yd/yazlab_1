@@ -21,8 +21,7 @@ namespace MuzeGecesi.Argus
         private float coldStartSeconds = 60f;
         private bool isWarm = false;
 
-        // Önceki mesajların hepsini göndermek modeli karıştırıyordu (eski mesajlara cevap veriyor,
-        // eski retleri tekrar ediyordu). O yüzden sadece "oyuncu daha önce yetkisini belirtti mi" bilgisini tutuyoruz.
+        // Sadece oyuncunun daha önce yetkisini belirtip belirtmediğini tutuyoruz.
         private bool authorityClaimed = false;
 
         public OllamaArgusClient(string baseUrl, string model, float timeoutSeconds)
@@ -39,7 +38,6 @@ namespace MuzeGecesi.Argus
         }
 
         // Modeli önceden belleğe yükler, ilk soru uzun beklemesin diye.
-        // Mesaj listesi boş gönderilirse Ollama cevap üretmez, sadece modeli yükler.
         public async Task WarmUpAsync()
         {
             try
@@ -91,8 +89,7 @@ namespace MuzeGecesi.Argus
                     return ArgusResponse.Fallback("Modelin cevabı geçerli JSON değil: " + modelMetni);
                 }
 
-                // Model iki sorudan birine hayır deyip yine de kasayı açtığını söylerse
-                // aynı mesajı kısa bir notla bir kez daha soruyoruz (kasa zaten kapalı kalır)
+                // Cevap kendi kararıyla çelişirse bir kez daha soruyoruz.
                 if (CevapCelisiyor(response))
                 {
                     Debug.Log("[ARGUS] Cevap kendi kararıyla çelişti, tekrar soruluyor: " + response.reply);

@@ -4,7 +4,6 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 // Menulerdeki dugme, yazi, kaydirici gibi parcalari kodla olusturur.
-// Boylece menu sahnesini elle kurmaya gerek kalmaz.
 public static class ArayuzYardimci
 {
     public static readonly Color Altin = new Color(0.95f, 0.8f, 0.45f);

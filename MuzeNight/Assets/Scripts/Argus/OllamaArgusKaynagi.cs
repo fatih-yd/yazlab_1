@@ -3,7 +3,6 @@ using UnityEngine;
 using MuzeGecesi.Argus;
 
 // Terminal ile Ollama arasındaki köprü. Terminalin cevap kaynağı budur.
-// Terminal cevabı ICevapKaynagi'dan ister, biz de OllamaArgusClient'a soruyoruz.
 public class OllamaArgusKaynagi : MonoBehaviour, ICevapKaynagi
 {
     [SerializeField] private string ollamaUrl = "http://localhost:11434";
@@ -39,8 +38,7 @@ public class OllamaArgusKaynagi : MonoBehaviour, ICevapKaynagi
         }
         else
         {
-            // Guven puani modelin cevapladigi iki sorudan hesaplanir:
-            // yetki 50, yetkiyle birlikte acil neden +40 (yetkisiz neden 25), izin verildiyse 100
+            // Guven puani: yetki 50, yetkiyle birlikte neden 90, sadece neden 25, izin 100.
             if (cevap.yetki_belirtti)
             {
                 yetkiVar = true;

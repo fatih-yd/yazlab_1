@@ -5,8 +5,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 
 // Tools → Muze → Ana Menu Sahnesini Kur menusu.
-// AnaMenu sahnesini (kamera, EventSystem, AnaMenu bileseni) olusturur ve
-// build listesine once AnaMenu, sonra muze sahnesini ekler.
 public static class MuzeMenuKurulum
 {
     private const string MenuYolu = "Assets/Scenes/AnaMenu.unity";

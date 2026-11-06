@@ -6,10 +6,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 // Tools → Muze → Gorunumu Guzellestir menusu.
-// Gece atmosferi (karanlik arka plan, sis, hafif ay isigi), tavan, tavan lambalari,
-// duvarlara tablolar, kaideler ve kasaya spot isik ekler. Yeni nesnelerin hepsi "Dekor"
-// adli tek bir nesnenin altina girer, tekrar calistirinca eskisi silinip yenisi yapilir.
-// Dekorlarin carpisticisi yoktur, boylece Tozcu'nun sensorunu ve oyuncuyu etkilemezler.
 public static class MuzeGorunum
 {
     private const string DekorAdi = "Dekor";
@@ -134,10 +130,6 @@ public static class MuzeGorunum
         };
 
         // Kuzey duvari (z = +10) ve guney duvari (z = -10).
-        // Ara duvarlara (x = -6) ve bariyerlere (x = 0) denk gelmeyecek yerler secildi.
-        // Gercek tablolar kamu mali (telifsiz) eserler, Wikimedia Commons'tan alindi.
-        // Dosya adi bos olan yerlere soyut resim uretilir.
-        // Inci Kupeli Kiz yan salona (Heykel Galerisi) tasindi, yerinde galerinin kapisi var
         float[] kuzeyX = { -13.3f, -3f, 4f, 9f, 13f };
         string[] kuzeyDosya = { "yildizli_gece", "kaplumbaga", "buyuk_dalga", "monalisa", "" };
         string[] kuzeyBilgi =
@@ -195,7 +187,6 @@ public static class MuzeGorunum
     }
 
     // Oyuncunun kamerasi yerden yaklasik 1.6 m yukseklikte olsun (gozun normal hizasi).
-    // Oyuncunun merkezi yerden 1 m yukarida oldugu icin kamera 0.6 m yukari konur.
     private static void KamerayiAyarla()
     {
         GameObject oyuncu = GameObject.Find("oyuncu");
@@ -354,7 +345,6 @@ public static class MuzeGorunum
         Material mermer = Materyal("DekorMermer", new Color(0.72f, 0.7f, 0.65f), 0.5f, Color.black);
 
         // Dis duvarlar: yuzeyin konumu, odanin icine dogru yon, uzunluk.
-        // Kuzeyde (x -11.6..-9.4) ve guneyde (x 4.9..7.1) yan salon kapilari var, oralar bos birakilir.
         Bantlar(ana, new Vector3(-13.3f, 0f, 10f), new Vector3(0f, 0f, -1f), 3.4f, true, lambri, serit, mermer);
         Bantlar(ana, new Vector3(2.8f, 0f, 10f), new Vector3(0f, 0f, -1f), 24.4f, true, lambri, serit, mermer);
         Bantlar(ana, new Vector3(-5.05f, 0f, -10f), new Vector3(0f, 0f, 1f), 19.9f, true, lambri, serit, mermer);
@@ -548,7 +538,6 @@ public static class MuzeGorunum
     }
 
     // Tozcu'nun kapsul gorunumunu gizleyip ustune basit bir robot govdesi takar.
-    // Kapsulun carpistiricisi ve NavMeshAgent'i oldugu gibi kalir, sadece gorunum degisir.
     private static void TozcuyuRobotYap()
     {
         GameObject tozcu = GameObject.Find("Tozcu");

@@ -2,9 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-// Kucuk gorev: Muzedeki eser plakalarini ve notlari bul (baslangic odasinda 3 plaka, yan salonlarda 2 not). Plakalarda ARGUS'u nasil
-// ikna edecegine dair ipuclari var. Zorunlu degil, oyuncu istemezse atlayabilir.
-// Yazilar Canvas'in altina oyun basinda kodla olusturulur.
+// Kucuk gorev: muzedeki 3 plakayi ve 2 notu bul (istege bagli).
 public class GorevPaneli : MonoBehaviour
 {
     [SerializeField] private float okumaMesafesi = 2f;

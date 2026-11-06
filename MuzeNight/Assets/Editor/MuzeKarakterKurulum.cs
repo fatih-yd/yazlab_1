@@ -5,16 +5,11 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Tools → Muze → ARGUS Karakterini Kur menusu.
-// ARGUS'u kup yerine hazir karakter modeliyle gosterir: karakter terminalin yerine gecer (oyuncunun iki kati boyunda),
-// eline AK47 verilir, terminal kupunun gorunumu ve carpismasi kapanir.
-// ARGUS ile birlikte ikinci panel acilana kadar gizli kalir.
-// Her calistirmada eski karakteri silip yeniden kurar. Ctrl+Z ile geri alinabilir.
 public static class MuzeKarakterKurulum
 {
     private const string PaketKlasoru = "Assets/ArtStore3D/Insurgent Lite(LITE)/Prefab/";
 
     // Poz dosyasinin icinde yan yana uc karakter var (Insurgent_Pose0, 1, 2); yalnizca biri kullanilir.
-    // Baska bir pozu denemek icin 0, 1 ya da 2 yapip araci tekrar calistir.
     private const int SecilenPoz = 0;
 
     private const string KarakterYolu = PaketKlasoru + "Insurgent_Pose.prefab";
@@ -132,7 +127,6 @@ public static class MuzeKarakterKurulum
     }
 
     // Poz modelinde kemik olmadigi icin silah elin yaklasik yerine (sag on, gogus hizasi) konur.
-    // Acisi tahminidir; gerekirse Scene penceresinde elle ince ayar yapilir.
     private static void SilahiVer(GameObject karakter, GameObject silahPrefab)
     {
         Bounds karakterSinir = Sinirlar(karakter);

@@ -4,9 +4,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Tools → Muze → Kasa Kapisi ve ARGUS Kur menusu.
-// 1) Kasanin terminale bakan yuzune menteşeli bir kapi ve arkasina parlayan bir ic yuzey kurar.
-// 2) ARGUS terminalini ve arayuzunu ikinci panel acilana kadar gizleyecek ayari yapar.
-// Ctrl+Z ile geri alinabilir, tekrar calistirilirsa var olanlari cogaltmaz.
 public static class MuzeKasaKurulum
 {
     private const string CelikYolu = "Assets/Materials/KasaCelik.mat";
@@ -57,8 +54,7 @@ public static class MuzeKasaKurulum
             Object.DestroyImmediate(icYuzey.GetComponent<Collider>());
         }
 
-        // Menteşe kasanin disinda ayri bir obje: kasa esit olmayan olcekte oldugu icin
-        // kapi onun cocugu olursa donerken egilip bozulur.
+        // Menteşe kasanin disinda ayri bir obje.
         GameObject mentese = GameObject.Find("KasaKapiMenteseli");
         if (mentese == null)
         {
