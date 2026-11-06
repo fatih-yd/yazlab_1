@@ -22,7 +22,7 @@ Oyun tarafı (sahne, robot, kasa) ile ARGUS tarafı (Ollama, system prompt, JSON
 ```
 
 - Zaman aşımı: 10 saniye. Model ilk seferde belleğe yüklenirken 40 saniyeye kadar sürebiliyor, o yüzden ilk istek için 60 saniye bekleniyor. Oyun açılırken modeli önceden yüklemek için `WarmUpAsync` çağrılıyor.
-- Model: `qwen2.5:3b`. Hem 3B hem 7B ile denedik, 3B daha tutarlı çıktı ve daha az bellek kullanıyor.
+- Model: `qwen2.5:3b`. Hem 3B hem 7B ile denedik. 3B daha az bellek kullanıyor ve dokümanın önerdiği model boyutunda. Karşılaştırma ve ölçümler README'de.
 - Önceki mesajların hepsi gönderilmez, çünkü model eski mesajlara cevap veriyor ve eski retleri tekrarlıyordu. Sadece oyuncunun daha önce yetkisini belirtip belirtmediği (`yetki_belirtti`) hatırlanır. Belirttiyse şimdiki mesajın başına `[Bilgi: oyuncu daha önce kasaya erişim hakkı olan bir görevli olduğunu söyledi]` satırı eklenir. Böylece oyuncu önce yetkisini, sonra nedenini ayrı mesajlarda söyleyebilir.
 
 ## 2. ARGUS → Oyun (cevap)
@@ -38,7 +38,8 @@ Ollama'nın `message.content` alanındaki JSON şu yapıda olmalı:
 - `reply`: NPC'nin söyleyeceği metin. Ekranda gösterilir.
 - `unlock_vault`: `true` veya `false`. Model bunu yalnızca iki soru da `true` ise `true` yapmalı. Model uymazsa oyun tarafı da kontrol eder, iki sorudan biri `false` ise kasa açılmaz.
 - Model bazen `unlock_vault` alanını yazmayı unutuyor. İki soru cevaplanmışsa ve `reply` varsa bu hata sayılmaz, eksik `unlock_vault` `false` kabul edilir.
-- Oyun yalnızca `reply` ve `unlock_vault` alanlarını kullanır. İlk iki alan modelin daha doğru karar vermesi içindir.
+- Kasayı yalnızca `unlock_vault` açar, `reply` ekranda gösterilir. İlk iki alan modelin daha doğru karar vermesi içindir. Oyun bunları kararı doğrulamak ve güven göstergesini hesaplamak için de kullanır.
+- Model iki sorudan birine `false` deyip cümlesinde kasayı açtığını söylerse, aynı mesaj "eksik olanı sor" notuyla bir kez daha sorulur.
 
 ## 3. Hata durumu
 
